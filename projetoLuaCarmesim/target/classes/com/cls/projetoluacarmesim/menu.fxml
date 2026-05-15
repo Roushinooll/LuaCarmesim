@@ -6,30 +6,18 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-
-
-  <VBox alignment="CENTER" prefHeight="608.0" prefWidth="1101.0" spacing="20.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cls.projetoluacarmesim.MenuController" style="fx-background-image:url(background.png);">
-
-      <children>
-
-          <Label alignment="CENTER" contentDisplay="BOTTOM" text="Lua Carmesim">
-
-              <font>
-                  <Font name="DejaVuMathTeXGyre-Regular" size="22.0" />
-              </font>
-
-          </Label>
-
-          <Button fx:id="primaryButton" onAction="#switchToSecondary" prefHeight="26.0" prefWidth="74.0" text="Jogar" />
-
-          <Button fx:id="primaryButton1" onAction="#switchToSecondary" prefHeight="26.0" prefWidth="72.0" text="Opções" />
-
-          <Button fx:id="primaryButton2" onAction="#switchToSecondary" text="Créditos" />
-
-      </children>
-
-      <padding>
-          <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-      </padding>
-
-  </VBox>
+<VBox alignment="CENTER" prefHeight="696.0" prefWidth="1159.0" spacing="20.0" stylesheets="@../../../Styles/MenuStyle.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cls.projetoluacarmesim.MenuController">
+   <children>
+      <Label stylesheets="@../../../Styles/MenuStyle.css" text="Lua Carmesim">
+         <font>
+            <Font name="DejaVuMathTeXGyre-Regular" size="29.0" />
+         </font></Label>
+      <Button fx:id="jogador" onAction="#jogar" prefHeight="43.0" prefWidth="127.0" stylesheets="@../../../Styles/MenuStyle.css" text="Jogar" />
+      <Button fx:id="opcoes" onAction="#opcoes" prefHeight="43.0" prefWidth="128.0" stylesheets="@../../../Styles/MenuStyle.css" text="Opções" />
+      <Button fx:id="ranking" onAction="#ranking" stylesheets="@../../../Styles/MenuStyle.css" text="Ranking" />
+      <Button fx:id="creditos" onAction="#creditos" stylesheets="@../../../Styles/MenuStyle.css" text="Creditos" />
+   </children>
+   <padding>
+      <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+   </padding>
+</VBox>

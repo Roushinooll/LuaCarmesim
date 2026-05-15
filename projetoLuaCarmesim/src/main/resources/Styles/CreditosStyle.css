@@ -1,0 +1,167 @@
+.root {
+    
+    -fx-background-image: url("../image/background.png");
+
+    -fx-background-size: cover;
+
+    -fx-background-repeat: no-repeat;
+
+    -fx-background-position: center center;
+    
+    -fx-alignment: center;
+    
+}
+
+/* TITULO "CRÉDITOS" */
+
+.creditos-titulo {
+
+    -fx-text-fill: #8b1e1e;
+
+    -fx-font-size: 52px;
+
+    -fx-font-family: "Cinzel";
+
+    -fx-font-weight: bold;
+
+    -fx-effect:
+        dropshadow(
+            gaussian,
+            rgba(0,0,0,0.9),
+            10,
+            0.3,
+            3,
+            3
+        );
+
+}
+
+
+/* "Jogo feito por:" */
+
+.jogo-feito-por {
+
+    -fx-text-fill: #d64545;
+
+    -fx-font-size: 44px;
+
+    -fx-font-family: "Cinzel";
+
+    -fx-font-weight: bold;
+
+    -fx-effect:
+        dropshadow(
+            gaussian,
+            rgba(0,0,0,0.9),
+            8,
+            0.2,
+            3,
+            3
+        );
+}
+
+
+/* NOMES */
+
+.nomes {
+
+    -fx-text-fill: #f2f2f2;
+
+    -fx-font-size: 28px;
+
+    -fx-font-family: "Georgia";
+
+    -fx-font-weight: bold;
+
+    -fx-effect:
+        dropshadow(
+            gaussian,
+            rgba(0,0,0,0.7),
+            5,
+            0.2,
+            2,
+            2
+        );
+}
+
+
+/* TEXTOS MENORES */
+
+.info-texto {
+
+    -fx-text-fill: #c9c9c9;
+
+    -fx-font-size: 22px;
+
+    -fx-font-family: "Georgia";
+
+    -fx-effect:
+        dropshadow(
+            gaussian,
+            rgba(0,0,0,0.7),
+            3,
+            0.1,
+            1,
+            1
+        );
+}
+
+
+/* BOTÃO */
+
+.button {
+
+    -fx-background-color:
+        linear-gradient(
+            to bottom,
+            #111111,
+            #050505
+        );
+
+    -fx-text-fill: white;
+
+    -fx-font-size: 18px;
+
+    -fx-font-family: "Cinzel";
+
+    -fx-font-weight: bold;
+
+    -fx-background-radius: 14;
+
+    -fx-border-radius: 14;
+
+    -fx-border-color: #8b0000;
+
+    -fx-border-width: 2;
+
+    -fx-padding: 12 28 12 28;
+
+    -fx-cursor: hand;
+
+    -fx-effect:
+        dropshadow(
+            gaussian,
+            rgba(0,0,0,0.8),
+            8,
+            0.2,
+            0,
+            2
+        );
+}
+
+
+/* HOVER BOTÃO */
+
+.button:hover {
+
+    -fx-background-color:
+        linear-gradient(
+            to bottom,
+            #8b0000,
+            #3b0000
+        );
+
+    -fx-scale-x: 1.05;
+
+    -fx-scale-y: 1.05;
+}

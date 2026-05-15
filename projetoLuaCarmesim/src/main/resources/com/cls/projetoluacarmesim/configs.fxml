@@ -1,16 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Button?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cls.projetoluacarmesim.ConfigsController">
-   <children>
-      <Label text="Primary View" />
-      <Button fx:id="primaryButton" text="Switch to Secondary View" onAction="#switchToSecondary"/>
-   </children>
-   <padding>
-      <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-   </padding>
-</VBox>
+
+<StackPane prefHeight="720.0" prefWidth="1280.0" stylesheets="@../../../Styles/ConfigStyles.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cls.projetoluacarmesim.ConfigsController">
+
+    <!-- Painel central semitransparente -->
+    <VBox alignment="CENTER" maxWidth="480.0" spacing="22.0" styleClass="painel-configs">
+
+        <padding>
+            <Insets bottom="48.0" left="56.0" right="56.0" top="48.0" />
+        </padding>
+
+        <!-- Título -->
+        <Label styleClass="titulo-configs" text="CONFIGURAÇÕES" />
+
+        <!-- Separador decorativo -->
+        <Separator prefWidth="360.0" styleClass="separador" />
+
+        <!-- ── Música ── -->
+        <HBox alignment="CENTER_LEFT" spacing="16.0">
+            <Label prefWidth="110.0" styleClass="label-controle" text="Música" />
+            <Slider fx:id="sliderMusica" max="100" min="0" prefWidth="240.0" styleClass="slider-configs" value="50" />
+        </HBox>
+
+        <!-- ── Som ── -->
+        <HBox alignment="CENTER_LEFT" spacing="16.0">
+            <Label prefWidth="110.0" styleClass="label-controle" text="Som" />
+            <Slider fx:id="sliderSom" max="100" min="0" prefWidth="240.0" styleClass="slider-configs" value="70" />
+        </HBox>
+
+        <!-- ── Tela Cheia ── -->
+        <HBox alignment="CENTER_LEFT" spacing="16.0">
+            <Label prefWidth="110.0" styleClass="label-controle" text="Tela Cheia" />
+            <CheckBox fx:id="checkTelaCheia" styleClass="check-configs" />
+        </HBox>
+
+        <!-- ── Resolução ── -->
+        <HBox alignment="CENTER_LEFT" spacing="16.0">
+            <Label prefWidth="110.0" styleClass="label-controle" text="Resolução" />
+            <ComboBox fx:id="comboResolucao" prefWidth="200.0" promptText="Selecione..." styleClass="combo-configs" />
+        </HBox>
+
+        <!-- Separador decorativo -->
+        <Separator prefWidth="360.0" styleClass="separador" />
+
+        <!-- ── Botões Salvar / Resetar ── -->
+        <HBox alignment="CENTER" spacing="20.0">
+            <Button fx:id="btnSalvar" onAction="#salvar" prefWidth="130.0" styleClass="botao-configs" text="Salvar" />
+            <Button fx:id="btnResetar" onAction="#resetar" prefWidth="130.0" styleClass="botao-configs" text="Resetar" />
+        </HBox>
+
+        <!-- ── Botão Voltar ── -->
+        <Button fx:id="btnVoltar" onAction="#voltarParaMenu" prefWidth="200.0" styleClass="botao-voltar" text="Voltar Para o Menu" />
+
+    </VBox>
+</StackPane>

@@ -1,0 +1,170 @@
+/* ============================================================
+   ConfigsStyle.css — Lua Carmesim
+   Coloque em: src/main/resources/Styles/ConfigsStyle.css
+   ============================================================ */
+
+/* ---------- ROOT / BACKGROUND ---------- */
+.root {
+    
+    -fx-background-image: url("../image/background.png");
+
+    -fx-background-size: cover;
+
+    -fx-background-repeat: no-repeat;
+
+    -fx-background-position: center center;
+    
+    -fx-alignment: center;
+    
+}
+
+/* ---------- PAINEL CENTRAL (caixa escura semitransparente) ---------- */
+.painel-configs {
+    -fx-background-color: rgba(10, 0, 0, 0.72);
+    -fx-background-radius: 12;
+    -fx-border-color: #8b0000;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(180,0,0,0.45), 28, 0.3, 0, 0);
+}
+
+/* ---------- TÍTULO ---------- */
+.titulo-configs {
+    -fx-text-fill: #cc2200;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(200,0,0,0.8), 18, 0.5, 0, 0);
+    -fx-letter-spacing: 3px;
+}
+
+/* ---------- LABELS DOS CONTROLES ---------- */
+.label-controle {
+    -fx-text-fill: #dddddd;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 15px;
+}
+
+/* ---------- SLIDERS ---------- */
+.slider-configs .track {
+    -fx-background-color: #3a0000;
+    -fx-background-radius: 4;
+}
+
+.slider-configs .thumb {
+    -fx-background-color: #cc2200;
+    -fx-background-radius: 50%;
+    -fx-effect: dropshadow(gaussian, rgba(200,0,0,0.7), 8, 0.4, 0, 0);
+}
+
+.slider-configs:focused .thumb {
+    -fx-background-color: #ff3300;
+}
+
+/* ---------- CHECKBOX ---------- */
+.check-configs .box {
+    -fx-background-color: #1a0000;
+    -fx-border-color: #8b0000;
+    -fx-border-radius: 3;
+    -fx-border-width: 1.5;
+}
+
+.check-configs:selected .mark {
+    -fx-background-color: #cc2200;
+}
+
+.check-configs .text {
+    -fx-fill: #dddddd;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 15px;
+}
+
+/* ---------- COMBOBOX ---------- */
+.combo-configs {
+    -fx-background-color: #1a0000;
+    -fx-border-color: #8b0000;
+    -fx-border-radius: 6;
+    -fx-border-width: 1.5;
+    -fx-text-fill: #dddddd;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 14px;
+}
+
+.combo-configs .list-view {
+    -fx-background-color: #1a0000;
+    -fx-border-color: #8b0000;
+}
+
+.combo-configs .list-cell {
+    -fx-text-fill: #dddddd;
+    -fx-background-color: #1a0000;
+    -fx-font-family: "Georgia";
+}
+
+.combo-configs .list-cell:hover {
+    -fx-background-color: #3a0000;
+    -fx-text-fill: #ff6644;
+}
+
+.combo-configs .arrow-button {
+    -fx-background-color: #3a0000;
+}
+
+.combo-configs .arrow {
+    -fx-background-color: #cc2200;
+}
+
+/* ---------- BOTÕES PRIMÁRIOS (Salvar / Resetar) ---------- */
+.botao-configs {
+    -fx-background-color: transparent;
+    -fx-border-color: #8b0000;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-text-fill: #eeeeee;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 8 28 8 28;
+    -fx-effect: dropshadow(gaussian, rgba(180,0,0,0.3), 8, 0.2, 0, 0);
+    -fx-transition: all 0.2s;
+}
+
+.botao-configs:hover {
+    -fx-background-color: rgba(139,0,0,0.35);
+    -fx-border-color: #cc2200;
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(200,0,0,0.7), 16, 0.4, 0, 0);
+}
+
+.botao-configs:pressed {
+    -fx-background-color: rgba(139,0,0,0.6);
+    -fx-scale-x: 0.97;
+    -fx-scale-y: 0.97;
+}
+
+/* ---------- BOTÃO VOLTAR ---------- */
+.botao-voltar {
+    -fx-background-color: rgba(30,0,0,0.6);
+    -fx-border-color: #550000;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-text-fill: #bbbbbb;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-padding: 7 24 7 24;
+}
+
+.botao-voltar:hover {
+    -fx-background-color: rgba(80,0,0,0.5);
+    -fx-border-color: #8b0000;
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(180,0,0,0.5), 10, 0.3, 0, 0);
+}
+
+/* ---------- SEPARADOR ---------- */
+.separador {
+    -fx-background-color: #5a0000;
+    -fx-padding: 0;
+}

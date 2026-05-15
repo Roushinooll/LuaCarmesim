@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Button?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cls.projetoluacarmesim.CreditosController">
+<VBox alignment="CENTER" prefHeight="788.0" prefWidth="1296.0" spacing="20.0" style="-fx-background-color: rgba(0,0,0,0.25);" stylesheets="@../../../Styles/CreditosStyle.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cls.projetoluacarmesim.CreditosController">
    <children>
-      <Label text="Primary View" />
-      <Button fx:id="primaryButton" text="Switch to Secondary View" onAction="#switchToSecondary"/>
+      <Label prefHeight="64.0" prefWidth="260.0" styleClass="creditos-titulo" stylesheets="@../../../Styles/CreditosStyle.css" text="CRÉDITOS" />
+      <Label prefHeight="65.0" prefWidth="317.0" styleClass="jogo-feito-por" stylesheets="@../../../Styles/CreditosStyle.css" text="Jogo feito por:" />
+      <Label prefHeight="32.0" prefWidth="437.0" styleClass="nomes" stylesheets="@../../../Styles/CreditosStyle.css" text="Daniel Muniz e Heitor Tonani" />
+      <Label prefHeight="25.0" prefWidth="183.0" styleClass="info-texto" stylesheets="@../../../Styles/CreditosStyle.css" text="Trabalho de TLP2" />
+      <Label prefHeight="25.0" prefWidth="218.0" styleClass="info-texto" stylesheets="@../../../Styles/CreditosStyle.css" text="do Professor Matheus" />
+      <Button fx:id="voltar" onAction="#voltar" stylesheets="@../../../Styles/CreditosStyle.css" text="Voltar Para Menu" />
    </children>
    <padding>
       <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
