@@ -1,4 +1,4 @@
-package com.cls.projetoluacarmesim.model;
+    package com.cls.projetoluacarmesim.model;
 
 import com.cls.projetoluacarmesim.enums.TipoBuff;
 
