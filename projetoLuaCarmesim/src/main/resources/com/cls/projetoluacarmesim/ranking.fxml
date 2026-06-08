@@ -1,16 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.geometry.Insets?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cls.projetoluacarmesim.ConfigsController">
-   <children>
-      <Label text="Primary View" />
-      <Button fx:id="primaryButton" text="Switch to Secondary View" onAction="#switchToSecondary"/>
-   </children>
-   <padding>
-      <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-   </padding>
+<VBox alignment="CENTER"
+      spacing="20.0"
+      prefWidth="1280.0"
+      prefHeight="720.0"
+      style="-fx-background-color: #0c0a0e;"
+      xmlns="http://javafx.com/javafx/8.0.171"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.cls.projetoluacarmesim.RankingController">
+
+    <padding>
+        <Insets top="40.0" right="80.0" bottom="40.0" left="80.0" />
+    </padding>
+
+    <children>
+
+        <Label text="Ranking"
+               style="
+                   -fx-text-fill: #f5e6d0;
+                   -fx-font-size: 48px;
+                   -fx-font-family: Georgia;
+               " />
+
+        <Label text="Ranking por maior quantidade de ruas exploradas"
+               style="
+                   -fx-text-fill: #c96b6b;
+                   -fx-font-size: 22px;
+                   -fx-font-family: Georgia;
+               " />
+
+        <ListView fx:id="listaRanking"
+                  prefWidth="700.0"
+                  prefHeight="420.0"
+                  style="
+                      -fx-font-size: 20px;
+                      -fx-font-family: Georgia;
+                  " />
+
+        <Button text="Voltar"
+                onAction="#voltarMenu"
+                prefWidth="200.0"
+                prefHeight="50.0"
+                style="
+                    -fx-background-color: #8b1e2d;
+                    -fx-text-fill: white;
+                    -fx-font-size: 20px;
+                    -fx-font-family: Georgia;
+                " />
+
+    </children>
 </VBox>

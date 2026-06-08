@@ -1,5 +1,7 @@
 package com.cls.projetoluacarmesim.util;
 
+import javafx.application.Platform;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -10,8 +12,13 @@ public class Input {
     public boolean interact;
 
     public Input(Scene scene) {
+        this(scene.getRoot());
+    }
 
-        scene.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+    public Input(Parent root) {
+        root.setFocusTraversable(true);
+
+        root.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
 
             if (e.getCode() == KeyCode.W || e.getCode() == KeyCode.UP) {
                 up = true;
@@ -34,7 +41,7 @@ public class Input {
             }
         });
 
-        scene.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
+        root.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
 
             if (e.getCode() == KeyCode.W || e.getCode() == KeyCode.UP) {
                 up = false;
@@ -56,5 +63,7 @@ public class Input {
                 interact = false;
             }
         });
+
+        Platform.runLater(root::requestFocus);
     }
 }

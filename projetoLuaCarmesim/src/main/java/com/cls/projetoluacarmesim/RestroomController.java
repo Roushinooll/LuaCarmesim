@@ -5,21 +5,30 @@ import com.cls.projetoluacarmesim.model.ItemEspecial;
 import com.cls.projetoluacarmesim.util.Input;
 import com.cls.projetoluacarmesim.util.ObjetoInterativo;
 import com.cls.projetoluacarmesim.util.Personagem;
+import com.cls.projetoluacarmesim.dao.JogadorDAO;
+import com.cls.projetoluacarmesim.dao.RankingDAO;
+import com.cls.projetoluacarmesim.model.Jogador;
+import com.cls.projetoluacarmesim.model.Ranking;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.SQLException;
+import java.util.Optional;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
+import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.control.Alert;
+import javafx.scene.control.TextInputDialog;
 
 public class RestroomController {
 
@@ -49,18 +58,28 @@ public class RestroomController {
     private boolean podeInteragir = true;
     private boolean dialogoAberto = false;
     private boolean inventarioAberto = false;
+    private boolean aguardandoNome = false;
 
     private final List<ObjetoInterativo> objetosInterativos = new ArrayList<>();
 
     public void startGame(Scene scene) {
 
-        input = new Input(scene);
+        Parent root = scene.getRoot();
+
+        input = new Input(root);
         personagem = new Personagem(personagemView);
 
-        configurarControles(scene);
+        EstadoJogo estado = EstadoJogo.getInstance();
+
+        if (estado.isPosicaoPersonagemSalva()) {
+            personagemView.setTranslateX(estado.getPersonagemTranslateX());
+            personagemView.setTranslateY(estado.getPersonagemTranslateY());
+        }
+
+        configurarControles(root);
         configurarObjetosInterativos();
 
-        Platform.runLater(() -> scene.getRoot().requestFocus());
+        Platform.runLater(root::requestFocus);
 
         loop = new AnimationTimer() {
 
@@ -87,9 +106,9 @@ public class RestroomController {
         loop.start();
     }
 
-    private void configurarControles(Scene scene) {
+    private void configurarControles(Parent root) {
 
-        scene.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+        root.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
 
             if (dialogoAberto) {
 
@@ -120,13 +139,13 @@ public class RestroomController {
 
         ObjetoInterativo mesaInterativa = new ObjetoInterativo(
                 mesa,
-                "Pressione F para pegar a arma",
+                "",
                 this::pegarArma
         );
 
         ObjetoInterativo portaInterativa = new ObjetoInterativo(
                 porta,
-                "Pressione F para sair para a rua",
+                "",
                 this::tentarSairParaRua
         );
 
@@ -146,7 +165,9 @@ public class RestroomController {
         }
 
         if (objetoAtual != null) {
-            textoInteracao.setText(objetoAtual.getMensagem());
+            if (objetoAtual.getMensagem() != null && !objetoAtual.getMensagem().isBlank()) {
+                textoInteracao.setText(objetoAtual.getMensagem());
+            }
 
             if (input.interact && podeInteragir) {
                 podeInteragir = false;
@@ -165,8 +186,11 @@ public class RestroomController {
 
     private void pegarArma() {
 
-        if (pegouArma) {
+        EstadoJogo estado = EstadoJogo.getInstance();
+
+        if (pegouArma || estado.getInventario().possuiItem("Revólver Enferrujado")) {
             textoInteracao.setText("Você já pegou a arma.");
+            mesa.setStyle("-fx-fill: #2a2a2a;");
             return;
         }
 
@@ -180,15 +204,8 @@ public class RestroomController {
                 false
         );
 
-        EstadoJogo estado = EstadoJogo.getInstance();
-
         estado.getInventario().adicionarItem(arma);
 
-        /*
-         * TESTE TEMPORÁRIO:
-         * Só deixe esse bloco se existir uma fórmula com id_formula = 1 no banco.
-         * Caso contrário, comente para evitar erro de chave estrangeira.
-         */
         if (estado.getJogadorAtual() != null) {
             estado.getInventario().aprenderReceita(
                     estado.getJogadorAtual().getIdJogador(),
@@ -207,14 +224,96 @@ public class RestroomController {
                 .getInventario()
                 .possuiItem("Revólver Enferrujado");
 
-        if (possuiArma) {
+        if (!possuiArma) {
+            abrirDialogo(
+                    "Tem certeza que não esqueceu nada?\n"
+            );
+            return;
+        }
+
+        if (EstadoJogo.getInstance().getJogadorAtual() != null) {
             sairParaRua();
             return;
         }
 
-        abrirDialogo(
-                "Tem certeza que não esqueceu nada?\nVocê ainda não pegou a arma."
-        );
+        if (aguardandoNome) {
+            return;
+        }
+
+        aguardandoNome = true;
+        dialogoAberto = true;
+        podeInteragir = false;
+        input.interact = false;
+        textoInteracao.setText("");
+
+        Platform.runLater(() -> {
+
+            boolean nomeConfirmado = garantirJogadorComNome();
+
+            aguardandoNome = false;
+            dialogoAberto = false;
+            podeInteragir = true;
+            input.interact = false;
+
+            if (nomeConfirmado) {
+                sairParaRua();
+            }
+        });
+    }
+    
+    private boolean garantirJogadorComNome() {
+
+        EstadoJogo estado = EstadoJogo.getInstance();
+
+        if (estado.getJogadorAtual() != null) {
+            return true;
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Nome do Jogador");
+        dialog.setHeaderText("Antes de sair, digite o nome do seu personagem.");
+        dialog.setContentText("Nome:");
+
+        Optional<String> resultado = dialog.showAndWait();
+
+        if (resultado.isEmpty()) {
+            return false;
+        }
+
+        String nome = resultado.get().trim();
+
+        if (nome.isEmpty()) {
+            mostrarErro("Nome inválido", "Você precisa digitar um nome para continuar.");
+            return false;
+        }
+
+        try {
+            JogadorDAO jogadorDAO = new JogadorDAO();
+            RankingDAO rankingDAO = new RankingDAO();
+
+            Jogador jogador = jogadorDAO.buscarPorNome(nome);
+
+            if (jogador == null) {
+                jogador = new Jogador(nome);
+                jogador = jogadorDAO.criar(jogador);
+            }
+
+            if (rankingDAO.buscarPorJogador(jogador.getIdJogador()) == null) {
+                rankingDAO.criar(new Ranking(jogador.getIdJogador()));
+            }
+
+            estado.setJogadorAtual(jogador);
+
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            mostrarErro(
+                    "Erro no banco de dados",
+                    "Não foi possível salvar o jogador no banco.\n\n" + e.getMessage()
+            );
+            return false;
+        }
     }
 
     private void abrirDialogo(String texto) {
@@ -249,8 +348,15 @@ public class RestroomController {
                 loop.stop();
             }
 
+            EstadoJogo.getInstance().salvarPosicaoPersonagem(
+                    personagemView.getTranslateX(),
+                    personagemView.getTranslateY()
+            );
+
             input.interact = false;
             podeInteragir = false;
+
+            EstadoJogo.getInstance().setTelaAnteriorInventario("restroom");
 
             App.setRoot("inventario");
 
@@ -265,10 +371,20 @@ public class RestroomController {
                 loop.stop();
             }
 
-            App.setRoot("streets");
+            StreetsController controller = (StreetsController) App.setRoot("streets");
+            controller.startGame(App.getStage().getScene());
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+    
+    private void mostrarErro(String titulo, String mensagem) {
+    Alert alert = new Alert(Alert.AlertType.ERROR);
+    alert.setTitle(titulo);
+    alert.setHeaderText(null);
+    alert.setContentText(mensagem);
+    alert.showAndWait();
 }
+}
+

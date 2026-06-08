@@ -7,7 +7,9 @@ import com.cls.projetoluacarmesim.model.JogadorFormula;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InventarioManager {
 
@@ -16,6 +18,10 @@ public class InventarioManager {
     private final ReceitaDAO receitaDAO = new ReceitaDAO();
 
     public void adicionarItem(ItemEspecial item) {
+        if (item == null) {
+            return;
+        }
+
         itens.add(item);
     }
 
@@ -25,6 +31,22 @@ public class InventarioManager {
 
     public List<ItemEspecial> getItens() {
         return itens;
+    }
+
+    public Map<String, Integer> getItensAgrupadosParaTela() {
+        Map<String, Integer> agrupados = new LinkedHashMap<>();
+
+        for (ItemEspecial item : itens) {
+            String chave = item.getNomeItem() + " - " + item.getTipoItem();
+
+            if (agrupados.containsKey(chave)) {
+                agrupados.put(chave, agrupados.get(chave) + 1);
+            } else {
+                agrupados.put(chave, 1);
+            }
+        }
+
+        return agrupados;
     }
 
     public boolean possuiItem(String nomeItem) {

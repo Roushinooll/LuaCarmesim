@@ -1,15 +1,14 @@
 package com.cls.projetoluacarmesim;
 
-import com.cls.projetoluacarmesim.model.ItemEspecial;
 import com.cls.projetoluacarmesim.model.Jogador;
 import com.cls.projetoluacarmesim.model.JogadorFormula;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
 import javafx.scene.control.ListView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -26,31 +25,27 @@ public class InventarioController {
     @FXML
     private ListView<String> listaReceitas;
 
-    private boolean controleConfigurado = false;
-
     @FXML
     public void initialize() {
         carregarItens();
         carregarReceitas();
 
-        rootInventario.sceneProperty().addListener((obs, oldScene, newScene) -> {
-            if (newScene != null && !controleConfigurado) {
-                configurarControles(newScene);
-                controleConfigurado = true;
+        rootInventario.setFocusTraversable(true);
+
+        rootInventario.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            if (e.getCode() == KeyCode.I) {
+                voltarParaTelaAnterior();
+                e.consume();
             }
         });
 
         Platform.runLater(() -> {
-            rootInventario.setFocusTraversable(true);
             rootInventario.requestFocus();
-        });
-    }
-
-    private void configurarControles(Scene scene) {
-        scene.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-            if (e.getCode() == KeyCode.ESCAPE) {
-                voltarParaRestroom();
-                e.consume();
+            if (listaItens != null) {
+                listaItens.setFocusTraversable(false);
+            }
+            if (listaReceitas != null) {
+                listaReceitas.setFocusTraversable(false);
             }
         });
     }
@@ -58,19 +53,24 @@ public class InventarioController {
     private void carregarItens() {
         listaItens.getItems().clear();
 
-        List<ItemEspecial> itens = EstadoJogo.getInstance()
+        Map<String, Integer> itensAgrupados = EstadoJogo.getInstance()
                 .getInventario()
-                .getItens();
+                .getItensAgrupadosParaTela();
 
-        if (itens.isEmpty()) {
+        if (itensAgrupados.isEmpty()) {
             listaItens.getItems().add("Nenhum item obtido.");
             return;
         }
 
-        for (ItemEspecial item : itens) {
-            listaItens.getItems().add(
-                    item.getNomeItem() + " - " + item.getTipoItem()
-            );
+        for (Map.Entry<String, Integer> entrada : itensAgrupados.entrySet()) {
+            String nomeItem = entrada.getKey();
+            int quantidade = entrada.getValue();
+
+            if (quantidade > 1) {
+                listaItens.getItems().add(nomeItem + " x" + quantidade);
+            } else {
+                listaItens.getItems().add(nomeItem);
+            }
         }
     }
 
@@ -104,13 +104,20 @@ public class InventarioController {
         }
     }
 
-    private void voltarParaRestroom() {
+    private void voltarParaTelaAnterior() {
         try {
-            Object controller = App.setRoot("restroom");
+            String telaAnterior = EstadoJogo.getInstance().getTelaAnteriorInventario();
+
+            Object controller = App.setRoot(telaAnterior);
 
             if (controller instanceof RestroomController) {
                 RestroomController restroomController = (RestroomController) controller;
                 restroomController.startGame(App.getStage().getScene());
+            }
+
+            if (controller instanceof StreetsController) {
+                StreetsController streetsController = (StreetsController) controller;
+                streetsController.startGame(App.getStage().getScene());
             }
 
         } catch (IOException e) {

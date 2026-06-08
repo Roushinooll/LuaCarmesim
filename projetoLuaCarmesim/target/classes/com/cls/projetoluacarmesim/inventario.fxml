@@ -49,7 +49,7 @@
             </children>
         </HBox>
 
-        <Label text="ESC - Voltar"
+        <Label text="I - Voltar"
                style="-fx-text-fill: #f5e6d0; -fx-font-size: 18px;" />
 
     </children>

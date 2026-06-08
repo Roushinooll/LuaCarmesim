@@ -21,8 +21,8 @@ public class Personagem {
         personagem.setImage(img);
 
         // Tamanho do sprite
-        personagem.setFitWidth(300);
-        personagem.setFitHeight(300);
+        personagem.setFitWidth(120);
+        personagem.setFitHeight(120);
 
         // Mantém proporção
         personagem.setPreserveRatio(true);
