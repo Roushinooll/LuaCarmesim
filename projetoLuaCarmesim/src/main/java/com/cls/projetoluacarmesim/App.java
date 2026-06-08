@@ -16,14 +16,28 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         primaryStage = stage;
-        scene = new Scene(loadFXML("menu"), 1280, 720);
+
+        // Carrega o FXML inicial
+        Parent root = loadFXML("menu");
+        scene = new Scene(root, 1280, 720);
+
         stage.setScene(scene);
         stage.setTitle("Lua Carmesim");
         stage.show();
     }
 
-    public static void setRoot(String fxml) throws IOException {
-        scene.setRoot(loadFXML(fxml));
+    /**
+     * Troca a raiz da scene atual e retorna o controller do FXML carregado.
+     */
+    public static Object setRoot(String fxml) throws IOException {
+        FXMLLoader loader = new FXMLLoader(
+            App.class.getResource("/com/cls/projetoluacarmesim/" + fxml + ".fxml")
+        );
+
+        Parent root = loader.load();
+        scene.setRoot(root);
+
+        return loader.getController(); // Retorna o controller da nova tela
     }
 
     public static Stage getStage() {

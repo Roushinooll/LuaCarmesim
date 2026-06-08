@@ -1,16 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Button?>
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.shape.Rectangle?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cls.projetoluacarmesim.RestroomController">
+<Pane prefWidth="1280.0" prefHeight="720.0"
+      xmlns="http://javafx.com/javafx/8.0.171"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.cls.projetoluacarmesim.RestroomController">
+
    <children>
-      <Label text="Primary View" />
-      <Button fx:id="primaryButton" text="Switch to Secondary View" onAction="#switchToSecondary"/>
+
+      <!-- Mesa -->
+      <Rectangle fx:id="mesa"
+                 layoutX="220.0"
+                 layoutY="260.0"
+                 width="170.0"
+                 height="100.0"
+                 style="-fx-fill: #4a2b1a;" />
+
+      <!-- Porta -->
+      <Rectangle fx:id="porta"
+                 layoutX="1070.0"
+                 layoutY="240.0"
+                 width="90.0"
+                 height="190.0"
+                 style="-fx-fill: #2b1a10;" />
+
+      <!-- Personagem -->
+      <ImageView fx:id="personagemView"
+                 layoutX="120.0"
+                 layoutY="120.0" />
+
+      <!-- Texto de interação -->
+      <Label fx:id="textoInteracao"
+             layoutX="390.0"
+             layoutY="640.0"
+             text=""
+             style="-fx-text-fill: white; -fx-font-size: 24px;" />
+
+      <!-- Caixa de diálogo estilo jogo -->
+        <Pane fx:id="caixaDialogo"
+              layoutX="290.0"
+              layoutY="470.0"
+              prefWidth="700.0"
+              prefHeight="180.0"
+              visible="false"
+              style="
+                  -fx-background-color: rgba(10, 5, 8, 0.92);
+                  -fx-border-color: #8b1e2d;
+                  -fx-border-width: 3px;
+                  -fx-border-radius: 8px;
+                  -fx-background-radius: 8px;
+              ">
+
+           <children>
+              <Label fx:id="textoDialogo"
+                     layoutX="35.0"
+                     layoutY="25.0"
+                     prefWidth="630.0"
+                     prefHeight="70.0"
+                     text="Tem certeza que não esqueceu nada?"
+                     wrapText="true"
+                     style="
+                         -fx-text-fill: #f5e6d0;
+                         -fx-font-size: 24px;
+                         -fx-font-family: 'Georgia';
+                     " />
+
+              <Label layoutX="35.0"
+                     layoutY="110.0"
+                     text="ENTER - Sair     ESC - Voltar"
+                     style="
+                         -fx-text-fill: #c96b6b;
+                         -fx-font-size: 18px;
+                         -fx-font-family: 'Georgia';
+                     " />
+           </children>
+        </Pane>
+      
    </children>
-   <padding>
-      <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-   </padding>
-</VBox>
+</Pane>
