@@ -28,6 +28,8 @@ public class EstadoJogo {
 
     private final List<double[]> posicoesInimigosRua = new ArrayList<>();
     private final List<double[]> posicoesItensRua = new ArrayList<>();
+    private final List<double[]> posicoesReceitasRua = new ArrayList<>();
+    private final List<Integer> idsReceitasRua = new ArrayList<>();
 
     private EstadoJogo() {
         inventario = new InventarioManager();
@@ -92,7 +94,9 @@ public class EstadoJogo {
             double translateX,
             double translateY,
             List<double[]> posicoesInimigos,
-            List<double[]> posicoesItens
+            List<double[]> posicoesItens,
+            List<double[]> posicoesReceitas,
+            List<Integer> idsReceitas
     ) {
         this.numeroRuaAtual = numeroRua;
         this.tipoRuaAtual = tipoRua;
@@ -109,6 +113,14 @@ public class EstadoJogo {
         for (double[] posicao : posicoesItens) {
             this.posicoesItensRua.add(new double[]{posicao[0], posicao[1]});
         }
+
+        this.posicoesReceitasRua.clear();
+        for (double[] posicao : posicoesReceitas) {
+            this.posicoesReceitasRua.add(new double[]{posicao[0], posicao[1]});
+        }
+
+        this.idsReceitasRua.clear();
+        this.idsReceitasRua.addAll(idsReceitas);
     }
 
     public int getNumeroRuaAtual() {
@@ -149,5 +161,19 @@ public class EstadoJogo {
         }
 
         return copia;
+    }
+
+    public List<double[]> getPosicoesReceitasRua() {
+        List<double[]> copia = new ArrayList<>();
+
+        for (double[] posicao : posicoesReceitasRua) {
+            copia.add(new double[]{posicao[0], posicao[1]});
+        }
+
+        return copia;
+    }
+
+    public List<Integer> getIdsReceitasRua() {
+        return new ArrayList<>(idsReceitasRua);
     }
 }

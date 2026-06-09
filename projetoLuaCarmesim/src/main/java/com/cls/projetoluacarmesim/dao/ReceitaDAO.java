@@ -88,6 +88,214 @@ public class ReceitaDAO {
         }
     }
 
+
+    public List<FormulaPocao> listarNaoAprendidasPorNivel(int idJogador, int nivelSequencia) throws SQLException {
+        String sql =
+                "SELECT fp.* " +
+                "FROM formula_pocao fp " +
+                "WHERE fp.nivel_sequencia = ? " +
+                "AND NOT EXISTS (" +
+                "    SELECT 1 " +
+                "    FROM jogador_formula jf " +
+                "    WHERE jf.id_formula = fp.id_formula " +
+                "    AND jf.id_jogador = ?" +
+                ") " +
+                "ORDER BY fp.id_formula";
+
+        List<FormulaPocao> lista = new ArrayList<>();
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = ConexaoBanco.getConexao();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, nivelSequencia);
+            ps.setInt(2, idJogador);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                FormulaPocao formula = mapearFormula(rs);
+                formula.setIngredientes(listarIngredientes(formula.getIdFormula()));
+                lista.add(formula);
+            }
+
+            return lista;
+
+        } finally {
+            ConexaoBanco.fechar(rs, ps, conn);
+        }
+    }
+
+    public FormulaPocao sortearNaoAprendidaPorNivel(int idJogador, int nivelSequencia) throws SQLException {
+        List<FormulaPocao> formulas = listarNaoAprendidasPorNivel(idJogador, nivelSequencia);
+        List<FormulaPocao> formulasPermitidas = new ArrayList<>();
+
+        for (FormulaPocao formula : formulas) {
+            if (podeEncontrarFormula(idJogador, formula)) {
+                formulasPermitidas.add(formula);
+            }
+        }
+
+        if (formulasPermitidas.isEmpty()) {
+            return null;
+        }
+
+        int indice = (int) (Math.random() * formulasPermitidas.size());
+        return formulasPermitidas.get(indice);
+    }
+
+    private boolean podeEncontrarFormula(int idJogador, FormulaPocao formula) throws SQLException {
+        int nivel = formula.getNivelSequencia();
+
+        if (nivel == 9) {
+            return true;
+        }
+
+        String nomeReceitaAnterior = getNomeReceitaAnterior(formula.getNomePocao(), nivel);
+
+        if (nomeReceitaAnterior == null) {
+            return false;
+        }
+
+        return jaAprendeuFormulaPorNome(idJogador, nomeReceitaAnterior);
+    }
+
+    private String getNomeReceitaAnterior(String nomePocao, int nivelAtual) {
+        String caminho = getCaminhoPorNome(nomePocao);
+
+        if (caminho == null || caminho.equals("Desconhecido")) {
+            return null;
+        }
+
+        switch (caminho) {
+            case "Vidente":
+                switch (nivelAtual) {
+                    case 8:
+                        return "Vidente";
+                    case 7:
+                        return "Palhaço";
+                    case 6:
+                        return "Mágico";
+                    case 5:
+                        return "Sem Rosto";
+                    default:
+                        return null;
+                }
+
+            case "Criminoso":
+                switch (nivelAtual) {
+                    case 8:
+                        return "Criminoso";
+                    case 7:
+                        return "Anjo Sem Asas";
+                    case 6:
+                        return "Assassino em Série";
+                    case 5:
+                        return "Diabo";
+                    default:
+                        return null;
+                }
+
+            case "Caçador":
+                switch (nivelAtual) {
+                    case 8:
+                        return "Caçador";
+                    case 7:
+                        return "Provocador";
+                    case 6:
+                        return "Piromaníaco";
+                    case 5:
+                        return "Conspirador";
+                    default:
+                        return null;
+                }
+
+            case "Bardo":
+                switch (nivelAtual) {
+                    case 8:
+                        return "Bardo";
+                    case 7:
+                        return "Suplicante da Luz";
+                    case 6:
+                        return "Sumo Sacerdote do Sol";
+                    case 5:
+                        return "Notário";
+                    default:
+                        return null;
+                }
+
+            default:
+                return null;
+        }
+    }
+
+    public String getCaminhoPorNome(String nomePocao) {
+        if (nomePocao == null) {
+            return "Desconhecido";
+        }
+
+        switch (nomePocao) {
+            case "Vidente":
+            case "Palhaço":
+            case "Mágico":
+            case "Sem Rosto":
+            case "Marionetista":
+                return "Vidente";
+
+            case "Criminoso":
+            case "Anjo Sem Asas":
+            case "Assassino em Série":
+            case "Diabo":
+            case "Apóstolo do Desejo":
+                return "Criminoso";
+
+            case "Caçador":
+            case "Provocador":
+            case "Piromaníaco":
+            case "Conspirador":
+            case "Ceifador":
+                return "Caçador";
+
+            case "Bardo":
+            case "Suplicante da Luz":
+            case "Sumo Sacerdote do Sol":
+            case "Notário":
+            case "Sacerdote da Luz":
+                return "Bardo";
+
+            default:
+                return "Desconhecido";
+        }
+    }
+
+    private boolean jaAprendeuFormulaPorNome(int idJogador, String nomePocao) throws SQLException {
+        String sql =
+                "SELECT 1 " +
+                "FROM jogador_formula jf " +
+                "INNER JOIN formula_pocao fp ON fp.id_formula = jf.id_formula " +
+                "WHERE jf.id_jogador = ? " +
+                "AND fp.nome_pocao = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = ConexaoBanco.getConexao();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, idJogador);
+            ps.setString(2, nomePocao);
+            rs = ps.executeQuery();
+
+            return rs.next();
+
+        } finally {
+            ConexaoBanco.fechar(rs, ps, conn);
+        }
+    }
+
     // -------------------------------------------------------
     // INGREDIENTES
     // -------------------------------------------------------
@@ -169,6 +377,9 @@ public class ReceitaDAO {
                     rs.getString("efeito_principal"),
                     rs.getString("descricao")
                 );
+
+                fp.setIngredientes(listarIngredientes(fp.getIdFormula()));
+
                 jf.setFormula(fp);
                 lista.add(jf);
             }

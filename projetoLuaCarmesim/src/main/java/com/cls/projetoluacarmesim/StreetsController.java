@@ -7,13 +7,17 @@ import com.cls.projetoluacarmesim.util.GeradorRua;
 import com.cls.projetoluacarmesim.util.Input;
 import com.cls.projetoluacarmesim.util.Personagem;
 import com.cls.projetoluacarmesim.dao.RankingDAO;
+import com.cls.projetoluacarmesim.dao.ReceitaDAO;
 import com.cls.projetoluacarmesim.model.Jogador;
+import com.cls.projetoluacarmesim.model.FormulaPocao;
 
 import java.sql.SQLException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
@@ -59,6 +63,8 @@ public class StreetsController {
 
     private final List<Rectangle> inimigos = new ArrayList<>();
     private final List<Rectangle> itens = new ArrayList<>();
+    private final List<Rectangle> receitas = new ArrayList<>();
+    private final Map<Rectangle, Integer> idsReceitas = new HashMap<>();
 
     private static final double DISTANCIA_MINIMA_INIMIGOS = 70;
     private boolean coletandoItem = false;
@@ -105,6 +111,7 @@ public class StreetsController {
 
                 limitarMovimento();
                 verificarColetaItem();
+                verificarColetaReceita();
                 verificarContatoInimigo();
                 verificarFimDaRua();
             }
@@ -146,8 +153,24 @@ public class StreetsController {
                 personagemView.getTranslateX(),
                 personagemView.getTranslateY(),
                 capturarPosicoes(inimigos),
-                capturarPosicoes(itens)
+                capturarPosicoes(itens),
+                capturarPosicoes(receitas),
+                capturarIdsReceitas()
         );
+    }
+
+    private List<Integer> capturarIdsReceitas() {
+        List<Integer> ids = new ArrayList<>();
+
+        for (Rectangle receita : receitas) {
+            Integer idReceita = idsReceitas.get(receita);
+
+            if (idReceita != null) {
+                ids.add(idReceita);
+            }
+        }
+
+        return ids;
     }
 
     private List<double[]> capturarPosicoes(List<Rectangle> objetos) {
@@ -166,12 +189,15 @@ public class StreetsController {
         camadaObjetos.getChildren().clear();
         inimigos.clear();
         itens.clear();
+        receitas.clear();
+        idsReceitas.clear();
 
         tipoRuaAtual = geradorRua.sortearTipoRua();
 
         desenharRua(tipoRuaAtual);
         gerarInimigos();
         gerarItens();
+        gerarReceitas();
 
         textoInfo.setText("Rua " + numeroRua + " - " + nomeBonitoRua(tipoRuaAtual) + " | I - Inventário");
         textoInteracao.setText("");
@@ -192,6 +218,8 @@ public class StreetsController {
         camadaObjetos.getChildren().clear();
         inimigos.clear();
         itens.clear();
+        receitas.clear();
+        idsReceitas.clear();
 
         numeroRua = estado.getNumeroRuaAtual();
         tipoRuaAtual = estado.getTipoRuaAtual();
@@ -214,6 +242,26 @@ public class StreetsController {
 
             itens.add(item);
             camadaObjetos.getChildren().add(item);
+        }
+
+        List<double[]> posicoesReceitas = estado.getPosicoesReceitasRua();
+        List<Integer> idsReceitasSalvas = estado.getIdsReceitasRua();
+
+        for (int i = 0; i < posicoesReceitas.size(); i++) {
+            if (i >= idsReceitasSalvas.size()) {
+                break;
+            }
+
+            double[] posicao = posicoesReceitas.get(i);
+            int idReceita = idsReceitasSalvas.get(i);
+
+            Rectangle receita = criarRetanguloReceita();
+            receita.setLayoutX(posicao[0]);
+            receita.setLayoutY(posicao[1]);
+
+            receitas.add(receita);
+            idsReceitas.put(receita, idReceita);
+            camadaObjetos.getChildren().add(receita);
         }
 
         textoInfo.setText("Rua " + numeroRua + " - " + nomeBonitoRua(tipoRuaAtual) + " | I - Inventário");
@@ -318,6 +366,14 @@ public class StreetsController {
         return item;
     }
 
+    private Rectangle criarRetanguloReceita() {
+        Rectangle receita = new Rectangle(34, 26);
+        receita.setFill(Color.rgb(125, 80, 180));
+        receita.setArcWidth(8);
+        receita.setArcHeight(8);
+        return receita;
+    }
+
     private void gerarInimigos() {
 
         int quantidade = geradorRua.sortearQuantidadeInimigos(numeroRua);
@@ -367,6 +423,134 @@ public class StreetsController {
             itens.add(item);
             camadaObjetos.getChildren().add(item);
         }
+    }
+
+
+    private void gerarReceitas() {
+
+        Jogador jogador = EstadoJogo.getInstance().getJogadorAtual();
+
+        if (jogador == null || jogador.getIdJogador() <= 0) {
+            return;
+        }
+
+        if (Math.random() > calcularChanceReceita()) {
+            return;
+        }
+
+        try {
+            ReceitaDAO receitaDAO = new ReceitaDAO();
+
+            FormulaPocao formula = sortearReceitaDisponivel(
+                    receitaDAO,
+                    jogador.getIdJogador()
+            );
+
+            if (formula == null) {
+                return;
+            }
+
+            Rectangle receita = criarRetanguloReceita();
+            double[] posicao = sortearPosicaoValidaNaRua();
+
+            receita.setLayoutX(posicao[0]);
+            receita.setLayoutY(posicao[1]);
+
+            receitas.add(receita);
+            idsReceitas.put(receita, formula.getIdFormula());
+            camadaObjetos.getChildren().add(receita);
+
+        } catch (SQLException e) {
+            System.out.println("Erro ao gerar receita: " + e.getMessage());
+        }
+    }
+
+    private double calcularChanceReceita() {
+        if (numeroRua <= 3) {
+            return 0.20;
+        }
+
+        if (numeroRua <= 6) {
+            return 0.25;
+        }
+
+        if (numeroRua <= 10) {
+            return 0.30;
+        }
+
+        if (numeroRua <= 14) {
+            return 0.35;
+        }
+
+        return 0.65;
+    }
+
+    private FormulaPocao sortearReceitaDisponivel(ReceitaDAO receitaDAO, int idJogador) throws SQLException {
+
+        /*
+         * Agora qualquer sequência pode aparecer em qualquer rua.
+         * A raridade fica no peso do sorteio: sequência 9 é mais comum,
+         * enquanto sequência 5 é a mais rara.
+         *
+         * Mesmo assim, o ReceitaDAO continua bloqueando receitas que pulam
+         * sequência. Exemplo: Palhaço só pode aparecer se o jogador já tiver
+         * aprendido Vidente.
+         */
+        for (int tentativa = 0; tentativa < 10; tentativa++) {
+            int nivelSequencia = sortearNivelReceitaPorRaridade();
+
+            FormulaPocao formula = receitaDAO.sortearNaoAprendidaPorNivel(
+                    idJogador,
+                    nivelSequencia
+            );
+
+            if (formula != null) {
+                return formula;
+            }
+        }
+
+        /*
+         * Fallback:
+         * Se o sorteio cair várias vezes em níveis bloqueados ou já aprendidos,
+         * tenta encontrar qualquer receita disponível, da sequência mais comum
+         * para a mais rara.
+         */
+        int[] niveis = {9, 8, 7, 6, 5};
+
+        for (int nivel : niveis) {
+            FormulaPocao formula = receitaDAO.sortearNaoAprendidaPorNivel(
+                    idJogador,
+                    nivel
+            );
+
+            if (formula != null) {
+                return formula;
+            }
+        }
+
+        return null;
+    }
+
+    private int sortearNivelReceitaPorRaridade() {
+        double sorteio = Math.random();
+
+        if (sorteio < 0.55) {
+            return 9;
+        }
+
+        if (sorteio < 0.78) {
+            return 8;
+        }
+
+        if (sorteio < 0.91) {
+            return 7;
+        }
+
+        if (sorteio < 0.98) {
+            return 6;
+        }
+
+        return 5;
     }
 
     private double sortearYValidoNaRua() {
@@ -422,6 +606,70 @@ public class StreetsController {
             textoInteracao.setText("Você coletou: Fragmento Carmesim.");
 
             Platform.runLater(() -> coletandoItem = false);
+        }
+    }
+
+
+    private void verificarColetaReceita() {
+
+        Rectangle receitaColetada = null;
+
+        for (Rectangle receita : receitas) {
+            if (personagemView.getBoundsInParent().intersects(receita.getBoundsInParent())) {
+                receitaColetada = receita;
+                break;
+            }
+        }
+
+        if (receitaColetada == null) {
+            return;
+        }
+
+        Integer idReceita = idsReceitas.get(receitaColetada);
+
+        if (idReceita == null) {
+            return;
+        }
+
+        Jogador jogador = EstadoJogo.getInstance().getJogadorAtual();
+
+        if (jogador == null || jogador.getIdJogador() <= 0) {
+            return;
+        }
+
+        try {
+            ReceitaDAO receitaDAO = new ReceitaDAO();
+
+            if (!receitaDAO.jaAprendeu(jogador.getIdJogador(), idReceita)) {
+                receitaDAO.marcarComoAprendida(jogador.getIdJogador(), idReceita);
+            }
+
+            FormulaPocao formula = receitaDAO.buscarPorId(idReceita);
+
+            receitas.remove(receitaColetada);
+            idsReceitas.remove(receitaColetada);
+            camadaObjetos.getChildren().remove(receitaColetada);
+
+            salvarRuaAtualNoEstado();
+
+            if (formula != null) {
+                String caminho = receitaDAO.getCaminhoPorNome(formula.getNomePocao());
+
+                textoInteracao.setText(
+                        "Receita aprendida: "
+                                + formula.getNomePocao()
+                                + " | Caminho: "
+                                + caminho
+                                + " | Sequência "
+                                + formula.getNivelSequencia()
+                );
+            } else {
+                textoInteracao.setText("Você aprendeu uma nova receita.");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Erro ao aprender receita: " + e.getMessage());
+            textoInteracao.setText("Erro ao aprender receita.");
         }
     }
 

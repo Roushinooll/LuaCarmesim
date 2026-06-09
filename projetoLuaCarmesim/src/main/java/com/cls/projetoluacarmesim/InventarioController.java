@@ -1,7 +1,9 @@
 package com.cls.projetoluacarmesim;
 
+import com.cls.projetoluacarmesim.dao.ReceitaDAO;
 import com.cls.projetoluacarmesim.model.Jogador;
 import com.cls.projetoluacarmesim.model.JogadorFormula;
+import com.cls.projetoluacarmesim.model.IngredienteFormula;
 
 import java.io.IOException;
 import java.util.List;
@@ -93,13 +95,31 @@ public class InventarioController {
             return;
         }
 
+        ReceitaDAO receitaDAO = new ReceitaDAO();
+
         for (JogadorFormula receita : receitas) {
             if (receita.getFormula() != null) {
+
+                String caminho = receitaDAO.getCaminhoPorNome(
+                        receita.getFormula().getNomePocao()
+                );
+
                 listaReceitas.getItems().add(
                         receita.getFormula().getNomePocao()
+                                + " | Caminho: "
+                                + caminho
                                 + " | Sequência "
                                 + receita.getFormula().getNivelSequencia()
                 );
+
+                for (IngredienteFormula ingrediente : receita.getFormula().getIngredientes()) {
+                    listaReceitas.getItems().add(
+                            "   - "
+                                    + ingrediente.getQuantidade()
+                                    + "x "
+                                    + ingrediente.getNomeIngrediente()
+                    );
+                }
             }
         }
     }
