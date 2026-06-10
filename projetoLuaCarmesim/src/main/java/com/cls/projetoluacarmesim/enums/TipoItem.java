@@ -5,5 +5,6 @@ public enum TipoItem {
     LAMINA,
     TALISMO,
     POCAO,
+    INGREDIENTE,
     RELIQUIO
 }

@@ -38,6 +38,7 @@ CREATE TYPE tipo_item_enum AS ENUM (
     'lamina',
     'talismo',
     'pocao',
+    'ingrediente',
     'reliquio'
 );
 

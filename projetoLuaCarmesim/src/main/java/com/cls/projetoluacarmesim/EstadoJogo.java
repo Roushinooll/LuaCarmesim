@@ -143,6 +143,19 @@ public class EstadoJogo {
         return ruaEmAndamento;
     }
 
+
+    public void resetarRua() {
+        this.numeroRuaAtual = 1;
+        this.tipoRuaAtual = null;
+        this.ruaPersonagemTranslateX = 0;
+        this.ruaPersonagemTranslateY = 0;
+        this.ruaEmAndamento = false;
+        this.posicoesInimigosRua.clear();
+        this.posicoesItensRua.clear();
+        this.posicoesReceitasRua.clear();
+        this.idsReceitasRua.clear();
+    }
+
     public List<double[]> getPosicoesInimigosRua() {
         List<double[]> copia = new ArrayList<>();
 

@@ -10,6 +10,8 @@ import com.cls.projetoluacarmesim.dao.RankingDAO;
 import com.cls.projetoluacarmesim.dao.ReceitaDAO;
 import com.cls.projetoluacarmesim.model.Jogador;
 import com.cls.projetoluacarmesim.model.FormulaPocao;
+import com.cls.projetoluacarmesim.model.IngredienteFormula;
+import com.cls.projetoluacarmesim.model.JogadorFormula;
 
 import java.sql.SQLException;
 
@@ -25,6 +27,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -52,6 +55,12 @@ public class StreetsController {
     @FXML
     private Label textoInteracao;
 
+    @FXML
+    private Pane menuRua;
+
+    @FXML
+    private Button botaoVoltarRestroom;
+
     private Personagem personagem;
     private Input input;
     private AnimationTimer loop;
@@ -65,9 +74,20 @@ public class StreetsController {
     private final List<Rectangle> itens = new ArrayList<>();
     private final List<Rectangle> receitas = new ArrayList<>();
     private final Map<Rectangle, Integer> idsReceitas = new HashMap<>();
+    private final List<String[]> ingredientesColetaveisDaRua = new ArrayList<>();
 
     private static final double DISTANCIA_MINIMA_INIMIGOS = 70;
     private boolean coletandoItem = false;
+    private boolean menuAberto = false;
+    private long versaoRua = 0;
+
+    @FXML
+    private void initialize() {
+        if (menuRua != null) {
+            menuRua.setVisible(false);
+            menuRua.setManaged(false);
+        }
+    }
 
     public void startGame(Scene scene) {
 
@@ -107,13 +127,15 @@ public class StreetsController {
                 double delta = (now - lastTime) / 1_000_000_000.0;
                 lastTime = now;
 
-                personagem.update(delta, input);
+                if (!menuAberto) {
+                    personagem.update(delta, input);
 
-                limitarMovimento();
-                verificarColetaItem();
-                verificarColetaReceita();
-                verificarContatoInimigo();
-                verificarFimDaRua();
+                    limitarMovimento();
+                    verificarColetaItem();
+                    verificarColetaReceita();
+                    verificarContatoInimigo();
+                    verificarFimDaRua();
+                }
             }
         };
 
@@ -122,11 +144,102 @@ public class StreetsController {
 
     private void configurarControles(Parent root) {
         root.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            if (e.getCode() == KeyCode.TAB) {
+                if (menuAberto) {
+                    fecharMenuRua();
+                } else {
+                    abrirMenuRua();
+                }
+                e.consume();
+                return;
+            }
+
+            if (menuAberto) {
+                if (e.getCode() == KeyCode.ESCAPE) {
+                    fecharMenuRua();
+                }
+                e.consume();
+                return;
+            }
+
             if (e.getCode() == KeyCode.I) {
                 abrirInventario();
                 e.consume();
             }
         });
+    }
+
+    private void abrirMenuRua() {
+        menuAberto = true;
+        limparInputMovimento();
+
+        if (menuRua != null) {
+            menuRua.setManaged(true);
+            menuRua.setVisible(true);
+            menuRua.toFront();
+        }
+
+        textoInteracao.setText("Menu aberto.");
+
+        Platform.runLater(() -> {
+            if (botaoVoltarRestroom != null) {
+                botaoVoltarRestroom.requestFocus();
+            } else if (menuRua != null) {
+                menuRua.requestFocus();
+            }
+        });
+    }
+
+    @FXML
+    private void fecharMenuRua() {
+        menuAberto = false;
+        limparInputMovimento();
+
+        if (menuRua != null) {
+            menuRua.setVisible(false);
+            menuRua.setManaged(false);
+        }
+
+        textoInteracao.setText("");
+
+        Platform.runLater(() -> rootRua.getScene().getRoot().requestFocus());
+    }
+
+    @FXML
+    private void voltarParaRestroomPeloMenu() {
+        try {
+            menuAberto = false;
+            limparInputMovimento();
+
+            if (loop != null) {
+                loop.stop();
+            }
+
+            novaVersaoRua();
+            EstadoJogo.getInstance().resetarRua();
+
+            Object controller = App.setRoot("restroom");
+
+            if (controller instanceof RestroomController) {
+                RestroomController restroomController = (RestroomController) controller;
+                restroomController.startGame(App.getStage().getScene());
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void limparInputMovimento() {
+        if (input == null) {
+            return;
+        }
+
+        input.up = false;
+        input.down = false;
+        input.left = false;
+        input.right = false;
+        input.interact = false;
     }
 
     private void abrirInventario() {
@@ -138,6 +251,7 @@ public class StreetsController {
             EstadoJogo estado = EstadoJogo.getInstance();
             estado.setTelaAnteriorInventario("streets");
             salvarRuaAtualNoEstado();
+            novaVersaoRua();
 
             App.setRoot("inventario");
 
@@ -191,15 +305,19 @@ public class StreetsController {
         itens.clear();
         receitas.clear();
         idsReceitas.clear();
+        ingredientesColetaveisDaRua.clear();
 
         tipoRuaAtual = geradorRua.sortearTipoRua();
 
         desenharRua(tipoRuaAtual);
+        long versaoAtual = novaVersaoRua();
+
         gerarInimigos();
         gerarItens();
-        gerarReceitas();
+        gerarReceitaEmSegundoPlano(versaoAtual, numeroRua, tipoRuaAtual);
+        prepararItensColetaveisDaRuaEmSegundoPlano(versaoAtual);
 
-        textoInfo.setText("Rua " + numeroRua + " - " + nomeBonitoRua(tipoRuaAtual) + " | I - Inventário");
+        textoInfo.setText("Rua " + numeroRua + " - " + nomeBonitoRua(tipoRuaAtual) + " | I - Inventário | TAB - Menu");
         textoInteracao.setText("");
 
         personagemView.setLayoutX(70);
@@ -209,7 +327,7 @@ public class StreetsController {
         personagemView.toFront();
 
         salvarRuaAtualNoEstado();
-        atualizarRankingDaRun();
+        atualizarRankingDaRunEmSegundoPlano(numeroRua);
     }
 
     private void restaurarRuaSalva(EstadoJogo estado) {
@@ -220,6 +338,9 @@ public class StreetsController {
         itens.clear();
         receitas.clear();
         idsReceitas.clear();
+        ingredientesColetaveisDaRua.clear();
+
+        long versaoAtual = novaVersaoRua();
 
         numeroRua = estado.getNumeroRuaAtual();
         tipoRuaAtual = estado.getTipoRuaAtual();
@@ -264,7 +385,7 @@ public class StreetsController {
             camadaObjetos.getChildren().add(receita);
         }
 
-        textoInfo.setText("Rua " + numeroRua + " - " + nomeBonitoRua(tipoRuaAtual) + " | I - Inventário");
+        textoInfo.setText("Rua " + numeroRua + " - " + nomeBonitoRua(tipoRuaAtual) + " | I - Inventário | TAB - Menu");
         textoInteracao.setText("");
 
         personagemView.setLayoutX(70);
@@ -272,6 +393,8 @@ public class StreetsController {
         personagemView.setTranslateX(estado.getRuaPersonagemTranslateX());
         personagemView.setTranslateY(estado.getRuaPersonagemTranslateY());
         personagemView.toFront();
+
+        prepararItensColetaveisDaRuaEmSegundoPlano(versaoAtual);
     }
 
     private void desenharRua(TipoRua tipoRua) {
@@ -426,7 +549,7 @@ public class StreetsController {
     }
 
 
-    private void gerarReceitas() {
+    private void gerarReceitaEmSegundoPlano(long versaoEsperada, int ruaReferencia, TipoRua tipoReferencia) {
 
         Jogador jogador = EstadoJogo.getInstance().getJogadorAtual();
 
@@ -438,31 +561,43 @@ public class StreetsController {
             return;
         }
 
-        try {
-            ReceitaDAO receitaDAO = new ReceitaDAO();
+        executarEmSegundoPlano("lua-carmesim-receita-rua", () -> {
+            FormulaPocao formula = null;
 
-            FormulaPocao formula = sortearReceitaDisponivel(
-                    receitaDAO,
-                    jogador.getIdJogador()
-            );
+            try {
+                ReceitaDAO receitaDAO = new ReceitaDAO();
+                formula = sortearReceitaDisponivel(
+                        receitaDAO,
+                        jogador.getIdJogador()
+                );
+            } catch (SQLException e) {
+                System.out.println("Erro ao gerar receita: " + e.getMessage());
+            }
 
-            if (formula == null) {
+            final FormulaPocao formulaSorteada = formula;
+
+            if (formulaSorteada == null) {
                 return;
             }
 
-            Rectangle receita = criarRetanguloReceita();
-            double[] posicao = sortearPosicaoValidaNaRua();
+            Platform.runLater(() -> {
+                if (!ruaAindaAtual(versaoEsperada, ruaReferencia, tipoReferencia)) {
+                    return;
+                }
 
-            receita.setLayoutX(posicao[0]);
-            receita.setLayoutY(posicao[1]);
+                Rectangle receita = criarRetanguloReceita();
+                double[] posicao = sortearPosicaoValidaNaRua();
 
-            receitas.add(receita);
-            idsReceitas.put(receita, formula.getIdFormula());
-            camadaObjetos.getChildren().add(receita);
+                receita.setLayoutX(posicao[0]);
+                receita.setLayoutY(posicao[1]);
 
-        } catch (SQLException e) {
-            System.out.println("Erro ao gerar receita: " + e.getMessage());
-        }
+                receitas.add(receita);
+                idsReceitas.put(receita, formulaSorteada.getIdFormula());
+                camadaObjetos.getChildren().add(receita);
+
+                salvarRuaAtualNoEstado();
+            });
+        });
     }
 
     private double calcularChanceReceita() {
@@ -592,23 +727,114 @@ public class StreetsController {
             itens.remove(itemColetado);
             camadaObjetos.getChildren().remove(itemColetado);
 
-            ItemEspecial item = new ItemEspecial(
-                    0,
-                    "Fragmento Carmesim",
-                    TipoItem.RELIQUIO,
-                    "Um fragmento encontrado nas ruas escuras.",
-                    false
-            );
+            ItemEspecial item = sortearItemColetavel();
 
             EstadoJogo.getInstance().getInventario().adicionarItem(item);
-            salvarRuaAtualNoEstado();
 
-            textoInteracao.setText("Você coletou: Fragmento Carmesim.");
+            textoInteracao.setText("Você coletou: " + item.getNomeItem() + ".");
 
             Platform.runLater(() -> coletandoItem = false);
         }
     }
 
+
+    private ItemEspecial sortearItemColetavel() {
+        if (!ingredientesColetaveisDaRua.isEmpty()) {
+            int indice = (int) (Math.random() * ingredientesColetaveisDaRua.size());
+            String[] ingrediente = ingredientesColetaveisDaRua.get(indice);
+
+            return new ItemEspecial(
+                    0,
+                    ingrediente[0],
+                    TipoItem.INGREDIENTE,
+                    ingrediente[1],
+                    false
+            );
+        }
+
+        return sortearIngredienteBasico();
+    }
+
+    private void prepararItensColetaveisDaRuaEmSegundoPlano(long versaoEsperada) {
+        ingredientesColetaveisDaRua.clear();
+
+        Jogador jogador = EstadoJogo.getInstance().getJogadorAtual();
+
+        if (jogador == null || jogador.getIdJogador() <= 0) {
+            return;
+        }
+
+        int ruaReferencia = numeroRua;
+        TipoRua tipoReferencia = tipoRuaAtual;
+
+        executarEmSegundoPlano("lua-carmesim-ingredientes-rua", () -> {
+            List<String[]> ingredientesCarregados = buscarIngredientesColetaveisDoBanco(jogador.getIdJogador());
+
+            Platform.runLater(() -> {
+                if (!ruaAindaAtual(versaoEsperada, ruaReferencia, tipoReferencia)) {
+                    return;
+                }
+
+                ingredientesColetaveisDaRua.clear();
+                ingredientesColetaveisDaRua.addAll(ingredientesCarregados);
+            });
+        });
+    }
+
+    private List<String[]> buscarIngredientesColetaveisDoBanco(int idJogador) {
+        List<String[]> ingredientesCarregados = new ArrayList<>();
+        List<JogadorFormula> receitasAprendidas = EstadoJogo.getInstance()
+                .getInventario()
+                .listarReceitasAprendidas(idJogador);
+
+        Map<String, String> ingredientesUnicos = new HashMap<>();
+
+        for (JogadorFormula jogadorFormula : receitasAprendidas) {
+            if (jogadorFormula.getFormula() == null) {
+                continue;
+            }
+
+            for (IngredienteFormula ingrediente : jogadorFormula.getFormula().getIngredientes()) {
+                if (ingrediente.getNomeIngrediente() == null || ingrediente.getNomeIngrediente().isBlank()) {
+                    continue;
+                }
+
+                ingredientesUnicos.putIfAbsent(
+                        ingrediente.getNomeIngrediente(),
+                        "Ingrediente de alquimia: " + ingrediente.getTipoIngrediente()
+                );
+            }
+        }
+
+        for (Map.Entry<String, String> ingrediente : ingredientesUnicos.entrySet()) {
+            ingredientesCarregados.add(new String[]{ingrediente.getKey(), ingrediente.getValue()});
+        }
+
+        return ingredientesCarregados;
+    }
+
+    private ItemEspecial sortearIngredienteBasico() {
+        String[][] ingredientesBasicos = {
+            {"Erva de Névoa Prateada", "Ingrediente básico para poções do caminho Vidente."},
+            {"Fragmento de Vidro Manchado", "Mineral usado em fórmulas de percepção oculta."},
+            {"Olho Seco de Corvo Urbano", "Parte de monstro usada em rituais de visão."},
+            {"Orvalho da Meia-Noite", "Erva rara coletada sob a Lua Carmesim."},
+            {"Sangue Coagulado", "Fluido biológico usado em poções violentas."},
+            {"Garra de Cão Mutado", "Parte de monstro usada em poções de caça."},
+            {"Corda de Violino Rompida", "Item místico usado em poções de som e oratória."},
+            {"Página de Canção Antiga", "Item ritualístico usado em fórmulas do caminho Bardo."}
+        };
+
+        int indice = (int) (Math.random() * ingredientesBasicos.length);
+
+        return new ItemEspecial(
+                0,
+                ingredientesBasicos[indice][0],
+                TipoItem.INGREDIENTE,
+                ingredientesBasicos[indice][1],
+                false
+        );
+    }
 
     private void verificarColetaReceita() {
 
@@ -637,40 +863,81 @@ public class StreetsController {
             return;
         }
 
-        try {
-            ReceitaDAO receitaDAO = new ReceitaDAO();
+        receitas.remove(receitaColetada);
+        idsReceitas.remove(receitaColetada);
+        camadaObjetos.getChildren().remove(receitaColetada);
+        salvarRuaAtualNoEstado();
 
-            if (!receitaDAO.jaAprendeu(jogador.getIdJogador(), idReceita)) {
-                receitaDAO.marcarComoAprendida(jogador.getIdJogador(), idReceita);
+        textoInteracao.setText("Você encontrou uma receita. Sincronizando...");
+
+        aprenderReceitaEmSegundoPlano(
+                jogador.getIdJogador(),
+                idReceita,
+                versaoRua,
+                numeroRua,
+                tipoRuaAtual
+        );
+    }
+
+    private void aprenderReceitaEmSegundoPlano(
+            int idJogador,
+            int idReceita,
+            long versaoEsperada,
+            int ruaReferencia,
+            TipoRua tipoReferencia
+    ) {
+        executarEmSegundoPlano("lua-carmesim-aprender-receita", () -> {
+            FormulaPocao formula = null;
+            String caminho = "Desconhecido";
+            String erro = null;
+
+            try {
+                ReceitaDAO receitaDAO = new ReceitaDAO();
+
+                if (!receitaDAO.jaAprendeu(idJogador, idReceita)) {
+                    receitaDAO.marcarComoAprendida(idJogador, idReceita);
+                }
+
+                formula = receitaDAO.buscarPorId(idReceita);
+
+                if (formula != null) {
+                    caminho = receitaDAO.getCaminhoPorNome(formula.getNomePocao());
+                }
+            } catch (SQLException e) {
+                erro = e.getMessage();
+                System.out.println("Erro ao aprender receita: " + e.getMessage());
             }
 
-            FormulaPocao formula = receitaDAO.buscarPorId(idReceita);
+            final FormulaPocao formulaAprendida = formula;
+            final String caminhoFormula = caminho;
+            final String erroFinal = erro;
 
-            receitas.remove(receitaColetada);
-            idsReceitas.remove(receitaColetada);
-            camadaObjetos.getChildren().remove(receitaColetada);
+            Platform.runLater(() -> {
+                if (!ruaAindaAtual(versaoEsperada, ruaReferencia, tipoReferencia)) {
+                    return;
+                }
 
-            salvarRuaAtualNoEstado();
+                if (erroFinal != null) {
+                    textoInteracao.setText("Erro ao aprender receita.");
+                    return;
+                }
 
-            if (formula != null) {
-                String caminho = receitaDAO.getCaminhoPorNome(formula.getNomePocao());
+                if (formulaAprendida != null) {
+                    textoInteracao.setText(
+                            "Receita aprendida: "
+                                    + formulaAprendida.getNomePocao()
+                                    + " | Caminho: "
+                                    + caminhoFormula
+                                    + " | Sequência "
+                                    + formulaAprendida.getNivelSequencia()
+                    );
+                } else {
+                    textoInteracao.setText("Você aprendeu uma nova receita.");
+                }
 
-                textoInteracao.setText(
-                        "Receita aprendida: "
-                                + formula.getNomePocao()
-                                + " | Caminho: "
-                                + caminho
-                                + " | Sequência "
-                                + formula.getNivelSequencia()
-                );
-            } else {
-                textoInteracao.setText("Você aprendeu uma nova receita.");
-            }
-
-        } catch (SQLException e) {
-            System.out.println("Erro ao aprender receita: " + e.getMessage());
-            textoInteracao.setText("Erro ao aprender receita.");
-        }
+                prepararItensColetaveisDaRuaEmSegundoPlano(versaoEsperada);
+            });
+        });
     }
 
     private void verificarContatoInimigo() {
@@ -825,7 +1092,7 @@ public class StreetsController {
         return true;
     }
     
-    private void atualizarRankingDaRun() {
+    private void atualizarRankingDaRunEmSegundoPlano(int ruaExplorada) {
 
         Jogador jogador = EstadoJogo.getInstance().getJogadorAtual();
 
@@ -833,13 +1100,34 @@ public class StreetsController {
             return;
         }
 
-        try {
-            RankingDAO rankingDAO = new RankingDAO();
-            rankingDAO.registrarRuaExplorada(jogador.getIdJogador(), numeroRua);
+        executarEmSegundoPlano("lua-carmesim-ranking-rua", () -> {
+            try {
+                RankingDAO rankingDAO = new RankingDAO();
+                rankingDAO.registrarRuaExplorada(jogador.getIdJogador(), ruaExplorada);
 
-        } catch (SQLException e) {
-            System.out.println("Erro ao atualizar ranking: " + e.getMessage());
-        }
+            } catch (SQLException e) {
+                System.out.println("Erro ao atualizar ranking: " + e.getMessage());
+            }
+        });
+    }
+
+    private long novaVersaoRua() {
+        versaoRua++;
+        return versaoRua;
+    }
+
+    private boolean ruaAindaAtual(long versaoEsperada, int ruaReferencia, TipoRua tipoReferencia) {
+        return versaoRua == versaoEsperada
+                && numeroRua == ruaReferencia
+                && tipoRuaAtual == tipoReferencia
+                && rootRua != null
+                && rootRua.getScene() != null;
+    }
+
+    private void executarEmSegundoPlano(String nomeThread, Runnable acao) {
+        Thread thread = new Thread(acao, nomeThread);
+        thread.setDaemon(true);
+        thread.start();
     }
     
     private double[] sortearPosicaoValidaNaRua() {

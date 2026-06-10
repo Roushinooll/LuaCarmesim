@@ -5,30 +5,33 @@ import com.cls.projetoluacarmesim.model.ItemEspecial;
 import com.cls.projetoluacarmesim.util.Input;
 import com.cls.projetoluacarmesim.util.ObjetoInterativo;
 import com.cls.projetoluacarmesim.util.Personagem;
-import com.cls.projetoluacarmesim.dao.JogadorDAO;
-import com.cls.projetoluacarmesim.dao.RankingDAO;
+import com.cls.projetoluacarmesim.util.SessaoJogador;
+import com.cls.projetoluacarmesim.dao.ReceitaDAO;
+import com.cls.projetoluacarmesim.model.FormulaPocao;
+import com.cls.projetoluacarmesim.model.IngredienteFormula;
 import com.cls.projetoluacarmesim.model.Jogador;
-import com.cls.projetoluacarmesim.model.Ranking;
+import com.cls.projetoluacarmesim.model.JogadorFormula;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.sql.SQLException;
-import java.util.Optional;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.control.Alert;
-import javafx.scene.control.TextInputDialog;
 
 public class RestroomController {
 
@@ -42,6 +45,9 @@ public class RestroomController {
     private Rectangle porta;
 
     @FXML
+    private Rectangle caldeirao;
+
+    @FXML
     private Label textoInteracao;
 
     @FXML
@@ -49,6 +55,18 @@ public class RestroomController {
 
     @FXML
     private Label textoDialogo;
+
+    @FXML
+    private Pane painelCaldeirao;
+
+    @FXML
+    private ListView<String> listaReceitasCaldeirao;
+
+    @FXML
+    private Label textoCaldeirao;
+
+    @FXML
+    private Button botaoCraftar;
 
     private Personagem personagem;
     private Input input;
@@ -58,9 +76,24 @@ public class RestroomController {
     private boolean podeInteragir = true;
     private boolean dialogoAberto = false;
     private boolean inventarioAberto = false;
-    private boolean aguardandoNome = false;
+    private boolean caldeiraoAberto = false;
 
     private final List<ObjetoInterativo> objetosInterativos = new ArrayList<>();
+    private final Map<String, FormulaPocao> receitasCaldeirao = new LinkedHashMap<>();
+
+    @FXML
+    private void initialize() {
+        if (painelCaldeirao != null) {
+            painelCaldeirao.setVisible(false);
+        }
+
+        if (listaReceitasCaldeirao != null) {
+            listaReceitasCaldeirao.setFocusTraversable(true);
+            listaReceitasCaldeirao.getSelectionModel().selectedItemProperty().addListener((obs, antigo, novo) -> {
+                atualizarTextoReceitaSelecionada(novo);
+            });
+        }
+    }
 
     public void startGame(Scene scene) {
 
@@ -112,6 +145,27 @@ public class RestroomController {
 
             if (dialogoAberto) {
 
+                if (caldeiraoAberto) {
+                    if (e.getCode() == KeyCode.ESCAPE) {
+                        fecharCaldeirao();
+                        e.consume();
+                        return;
+                    }
+
+                    if (e.getCode() == KeyCode.ENTER) {
+                        craftarReceitaSelecionada();
+                        e.consume();
+                        return;
+                    }
+
+                    if (e.getCode() == KeyCode.F || e.getCode() == KeyCode.I) {
+                        input.interact = false;
+                        e.consume();
+                    }
+
+                    return;
+                }
+
                 if (e.getCode() == KeyCode.ENTER) {
                     fecharDialogo();
                     sairParaRua();
@@ -139,17 +193,24 @@ public class RestroomController {
 
         ObjetoInterativo mesaInterativa = new ObjetoInterativo(
                 mesa,
-                "",
+                "F - Pegar Revólver Enferrujado",
                 this::pegarArma
+        );
+
+        ObjetoInterativo caldeiraoInterativo = new ObjetoInterativo(
+                caldeirao,
+                "F - Usar caldeirão de poções",
+                this::abrirCaldeirao
         );
 
         ObjetoInterativo portaInterativa = new ObjetoInterativo(
                 porta,
-                "",
+                "F - Sair para a rua",
                 this::tentarSairParaRua
         );
 
         objetosInterativos.add(mesaInterativa);
+        objetosInterativos.add(caldeiraoInterativo);
         objetosInterativos.add(portaInterativa);
     }
 
@@ -207,10 +268,7 @@ public class RestroomController {
         estado.getInventario().adicionarItem(arma);
 
         if (estado.getJogadorAtual() != null) {
-            estado.getInventario().aprenderReceita(
-                    estado.getJogadorAtual().getIdJogador(),
-                    1
-            );
+            SessaoJogador.aprenderReceitaInicial(estado.getJogadorAtual());
         }
 
         textoInteracao.setText("Você pegou: Revólver Enferrujado.");
@@ -231,89 +289,220 @@ public class RestroomController {
             return;
         }
 
-        if (EstadoJogo.getInstance().getJogadorAtual() != null) {
-            sairParaRua();
+        if (EstadoJogo.getInstance().getJogadorAtual() == null) {
+            textoInteracao.setText("O jogador não foi sincronizado. Volte ao menu e clique em Jogar novamente.");
             return;
         }
 
-        if (aguardandoNome) {
+        sairParaRua();
+    }
+
+    private void abrirCaldeirao() {
+        Jogador jogador = EstadoJogo.getInstance().getJogadorAtual();
+
+        if (jogador == null || jogador.getIdJogador() <= 0) {
+            textoInteracao.setText("Digite seu nome no menu antes de usar o caldeirão.");
             return;
         }
 
-        aguardandoNome = true;
         dialogoAberto = true;
+        caldeiraoAberto = true;
         podeInteragir = false;
         input.interact = false;
         textoInteracao.setText("");
 
+        carregarReceitasNoCaldeirao(jogador);
+
+        painelCaldeirao.setVisible(true);
+        painelCaldeirao.toFront();
+
         Platform.runLater(() -> {
-
-            boolean nomeConfirmado = garantirJogadorComNome();
-
-            aguardandoNome = false;
-            dialogoAberto = false;
-            podeInteragir = true;
-            input.interact = false;
-
-            if (nomeConfirmado) {
-                sairParaRua();
-            }
+            painelCaldeirao.requestFocus();
+            listaReceitasCaldeirao.requestFocus();
         });
     }
-    
-    private boolean garantirJogadorComNome() {
 
-        EstadoJogo estado = EstadoJogo.getInstance();
+    private void carregarReceitasNoCaldeirao(Jogador jogador) {
+        receitasCaldeirao.clear();
+        listaReceitasCaldeirao.getItems().clear();
 
-        if (estado.getJogadorAtual() != null) {
-            return true;
+        List<JogadorFormula> receitas = EstadoJogo.getInstance()
+                .getInventario()
+                .listarReceitasAprendidas(jogador.getIdJogador());
+
+        if (receitas.isEmpty()) {
+            textoCaldeirao.setText("Você ainda não aprendeu nenhuma receita.");
+            botaoCraftar.setDisable(true);
+            return;
         }
 
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Nome do Jogador");
-        dialog.setHeaderText("Antes de sair, digite o nome do seu personagem.");
-        dialog.setContentText("Nome:");
+        for (JogadorFormula jogadorFormula : receitas) {
+            FormulaPocao formula = jogadorFormula.getFormula();
 
-        Optional<String> resultado = dialog.showAndWait();
-
-        if (resultado.isEmpty()) {
-            return false;
-        }
-
-        String nome = resultado.get().trim();
-
-        if (nome.isEmpty()) {
-            mostrarErro("Nome inválido", "Você precisa digitar um nome para continuar.");
-            return false;
-        }
-
-        try {
-            JogadorDAO jogadorDAO = new JogadorDAO();
-            RankingDAO rankingDAO = new RankingDAO();
-
-            Jogador jogador = jogadorDAO.buscarPorNome(nome);
-
-            if (jogador == null) {
-                jogador = new Jogador(nome);
-                jogador = jogadorDAO.criar(jogador);
+            if (formula == null) {
+                continue;
             }
 
-            if (rankingDAO.buscarPorJogador(jogador.getIdJogador()) == null) {
-                rankingDAO.criar(new Ranking(jogador.getIdJogador()));
-            }
+            boolean podeCriar = EstadoJogo.getInstance()
+                    .getInventario()
+                    .possuiIngredientes(formula);
 
-            estado.setJogadorAtual(jogador);
+            String status = podeCriar ? "PRONTA" : "FALTAM ITENS";
+            String opcao = "[" + status + "] "
+                    + formula.getNomePocao()
+                    + " | Sequência "
+                    + formula.getNivelSequencia();
 
-            return true;
+            receitasCaldeirao.put(opcao, formula);
+            listaReceitasCaldeirao.getItems().add(opcao);
+        }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-            mostrarErro(
-                    "Erro no banco de dados",
-                    "Não foi possível salvar o jogador no banco.\n\n" + e.getMessage()
+        if (receitasCaldeirao.isEmpty()) {
+            textoCaldeirao.setText("Nenhuma receita válida foi encontrada.");
+            botaoCraftar.setDisable(true);
+            return;
+        }
+
+        botaoCraftar.setDisable(false);
+        listaReceitasCaldeirao.getSelectionModel().selectFirst();
+        atualizarTextoReceitaSelecionada(listaReceitasCaldeirao.getSelectionModel().getSelectedItem());
+    }
+
+    private void atualizarTextoReceitaSelecionada(String chaveReceita) {
+        if (textoCaldeirao == null) {
+            return;
+        }
+
+        if (chaveReceita == null) {
+            textoCaldeirao.setText("Escolha uma receita.");
+            return;
+        }
+
+        FormulaPocao formula = receitasCaldeirao.get(chaveReceita);
+
+        if (formula == null) {
+            textoCaldeirao.setText("Receita inválida.");
+            return;
+        }
+
+        List<String> faltantes = EstadoJogo.getInstance()
+                .getInventario()
+                .listarIngredientesFaltantes(formula);
+
+        String ingredientes = resumirIngredientes(formula);
+
+        if (ingredientes.isBlank()) {
+            ingredientes = "Sem ingredientes cadastrados.";
+        }
+
+        String texto = formula.getNomePocao()
+                + "\nEfeito: "
+                + formula.getEfeitoPrincipal()
+                + "\nIngredientes: "
+                + ingredientes;
+
+        if (!faltantes.isEmpty()) {
+            texto += "\nFaltando: " + String.join(", ", faltantes);
+        } else {
+            texto += "\nStatus: pronta para criar.";
+        }
+
+        textoCaldeirao.setText(texto);
+    }
+
+    @FXML
+    private void craftarReceitaSelecionada() {
+        if (!caldeiraoAberto) {
+            return;
+        }
+
+        String selecionada = listaReceitasCaldeirao.getSelectionModel().getSelectedItem();
+
+        if (selecionada == null) {
+            textoCaldeirao.setText("Escolha uma receita primeiro.");
+            return;
+        }
+
+        FormulaPocao formulaEscolhida = receitasCaldeirao.get(selecionada);
+
+        if (formulaEscolhida == null) {
+            textoCaldeirao.setText("Receita inválida.");
+            return;
+        }
+
+        if (criarPocaoNoCaldeirao(formulaEscolhida)) {
+            Jogador jogador = EstadoJogo.getInstance().getJogadorAtual();
+            carregarReceitasNoCaldeirao(jogador);
+        }
+    }
+
+    @FXML
+    private void fecharCaldeirao() {
+        caldeiraoAberto = false;
+        dialogoAberto = false;
+        podeInteragir = true;
+        input.interact = false;
+
+        painelCaldeirao.setVisible(false);
+        textoInteracao.setText("");
+
+        Platform.runLater(() -> painelCaldeirao.getScene().getRoot().requestFocus());
+    }
+
+    private boolean criarPocaoNoCaldeirao(FormulaPocao formula) {
+        List<String> faltantes = EstadoJogo.getInstance()
+                .getInventario()
+                .listarIngredientesFaltantes(formula);
+
+        if (!faltantes.isEmpty()) {
+            textoCaldeirao.setText(
+                    "Ingredientes insuficientes.\nFalta: " + String.join(", ", faltantes)
             );
+            textoInteracao.setText("Faltam ingredientes para essa poção.");
             return false;
         }
+
+        boolean consumiu = EstadoJogo.getInstance()
+                .getInventario()
+                .consumirIngredientes(formula);
+
+        if (!consumiu) {
+            textoCaldeirao.setText("Não foi possível consumir os ingredientes.");
+            textoInteracao.setText("Não foi possível consumir os ingredientes.");
+            return false;
+        }
+
+        ItemEspecial pocao = EstadoJogo.getInstance()
+                .getInventario()
+                .criarPocao(formula);
+
+        if (pocao == null) {
+            textoCaldeirao.setText("Não foi possível criar a poção.");
+            textoInteracao.setText("Não foi possível criar a poção.");
+            return false;
+        }
+
+        textoInteracao.setText("Você criou: " + pocao.getNomeItem() + ".");
+        textoCaldeirao.setText(
+                pocao.getNomeItem()
+                        + " foi adicionada ao inventário.\nEfeito: "
+                        + pocao.getEfeito()
+        );
+        return true;
+    }
+
+    private String resumirIngredientes(FormulaPocao formula) {
+        List<String> partes = new ArrayList<>();
+
+        if (formula == null || formula.getIngredientes() == null) {
+            return "";
+        }
+
+        for (IngredienteFormula ingrediente : formula.getIngredientes()) {
+            partes.add(ingrediente.getQuantidade() + "x " + ingrediente.getNomeIngrediente());
+        }
+
+        return String.join(", ", partes);
     }
 
     private void abrirDialogo(String texto) {
@@ -371,6 +560,8 @@ public class RestroomController {
                 loop.stop();
             }
 
+            EstadoJogo.getInstance().resetarRua();
+
             StreetsController controller = (StreetsController) App.setRoot("streets");
             controller.startGame(App.getStage().getScene());
 
@@ -378,13 +569,4 @@ public class RestroomController {
             e.printStackTrace();
         }
     }
-    
-    private void mostrarErro(String titulo, String mensagem) {
-    Alert alert = new Alert(Alert.AlertType.ERROR);
-    alert.setTitle(titulo);
-    alert.setHeaderText(null);
-    alert.setContentText(mensagem);
-    alert.showAndWait();
 }
-}
-

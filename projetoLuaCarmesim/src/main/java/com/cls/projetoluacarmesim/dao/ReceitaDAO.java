@@ -39,6 +39,30 @@ public class ReceitaDAO {
         }
     }
 
+    public FormulaPocao buscarPorNome(String nomePocao) throws SQLException {
+        String sql = "SELECT * FROM formula_pocao WHERE nome_pocao = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = ConexaoBanco.getConexao();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, nomePocao);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                FormulaPocao formula = mapearFormula(rs);
+                formula.setIngredientes(listarIngredientes(formula.getIdFormula()));
+                return formula;
+            }
+            return null;
+        } finally {
+            ConexaoBanco.fechar(rs, ps, conn);
+        }
+    }
+
     public List<FormulaPocao> listarTodas() throws SQLException {
         String sql = "SELECT * FROM formula_pocao ORDER BY nivel_sequencia DESC";
         List<FormulaPocao> lista = new ArrayList<>();
