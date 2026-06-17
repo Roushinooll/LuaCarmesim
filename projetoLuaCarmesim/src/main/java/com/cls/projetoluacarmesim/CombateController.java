@@ -6,6 +6,7 @@ import com.cls.projetoluacarmesim.combate.HabilidadeCatalogo;
 import com.cls.projetoluacarmesim.combate.HabilidadeCombate;
 import com.cls.projetoluacarmesim.combate.ResultadoHabilidade;
 import com.cls.projetoluacarmesim.model.Beyonder;
+import com.cls.projetoluacarmesim.model.Boss;
 import com.cls.projetoluacarmesim.model.Inimigo;
 import com.cls.projetoluacarmesim.model.Jogador;
 import java.io.IOException;
@@ -155,7 +156,14 @@ public class CombateController {
         int sanidadeMaximaInimigo = 1;
         int sanidadeAtualInimigo = 0;
 
-        if (inimigo instanceof Beyonder) {
+        if (inimigo instanceof Boss) {
+            Boss boss = (Boss) inimigo;
+            boss.atualizarFasePorVida();
+            sequenciaInimigo = 5;
+            caminhoInimigo = boss.getCaminhoAtual();
+            sanidadeMaximaInimigo = boss.getSanidadeMaxima();
+            sanidadeAtualInimigo = boss.getSanidadeAtual();
+        } else if (inimigo instanceof Beyonder) {
             Beyonder beyonder = (Beyonder) inimigo;
             sequenciaInimigo = beyonder.getSequencia();
             caminhoInimigo = HabilidadeCatalogo.identificarCaminhoPorPocao(beyonder.getNomePocao());
@@ -525,9 +533,11 @@ public class CombateController {
     }
 
     private boolean deveInimigoUsarHabilidade() {
+        int chance = inimigo instanceof Boss ? 85 : 50;
+
         return !habilidadesInimigo.isEmpty()
                 && inimigoCombate.podeUsarHabilidadeEspecial()
-                && random.nextInt(100) < 65;
+                && random.nextInt(100) < chance;
     }
 
     private HabilidadeCombate escolherHabilidadeInimigo() {
@@ -583,6 +593,28 @@ public class CombateController {
             if (inimigo instanceof Beyonder) {
                 ((Beyonder) inimigo).setSanidadeAtual(inimigoCombate.getSanidadeAtual());
             }
+
+            atualizarFaseBossSeNecessario();
+        }
+    }
+
+
+    private void atualizarFaseBossSeNecessario() {
+        if (!(inimigo instanceof Boss) || inimigoCombate == null) {
+            return;
+        }
+
+        Boss boss = (Boss) inimigo;
+        boolean mudouFase = boss.atualizarFasePorVida();
+
+        inimigoCombate.setCaminho(boss.getCaminhoAtual());
+        inimigoCombate.setSequencia(5);
+
+        if (mudouFase && boss.estaVivo()) {
+            inimigoCombate.setSanidadeAtual(inimigoCombate.getSanidadeMaxima());
+            boss.setSanidadeAtual(boss.getSanidadeMaxima());
+            carregarHabilidadesInimigo();
+            adicionarLog("O espelho estilhaça a forma do boss. Ele muda para " + boss.getNomeFaseAtual() + ".");
         }
     }
 

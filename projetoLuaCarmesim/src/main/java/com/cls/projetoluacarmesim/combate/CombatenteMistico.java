@@ -10,8 +10,8 @@ public class CombatenteMistico {
 
     private final String nome;
     private final boolean jogador;
-    private final String caminho;
-    private final int sequencia;
+    private String caminho;
+    private int sequencia;
     private final int vidaMaxima;
     private int vidaAtual;
     private final int sanidadeMaxima;
@@ -63,8 +63,16 @@ public class CombatenteMistico {
         return caminho;
     }
 
+    public void setCaminho(String caminho) {
+        this.caminho = caminho;
+    }
+
     public int getSequencia() {
         return sequencia;
+    }
+
+    public void setSequencia(int sequencia) {
+        this.sequencia = sequencia;
     }
 
     public int getVidaMaxima() {

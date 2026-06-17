@@ -8,9 +8,12 @@ import com.cls.projetoluacarmesim.model.Inimigo;
 import com.cls.projetoluacarmesim.model.Bandido;
 import com.cls.projetoluacarmesim.model.Beyonder;
 import com.cls.projetoluacarmesim.util.GeradorRua;
+import com.cls.projetoluacarmesim.util.CatalogoItens;
+import com.cls.projetoluacarmesim.util.CatalogoItens.EntradaItem;
 import com.cls.projetoluacarmesim.util.Input;
 import com.cls.projetoluacarmesim.util.Personagem;
 import com.cls.projetoluacarmesim.util.InimigoMapa;
+import com.cls.projetoluacarmesim.util.SpriteInimigoFactory;
 import com.cls.projetoluacarmesim.dao.RankingDAO;
 import com.cls.projetoluacarmesim.dao.ReceitaDAO;
 import com.cls.projetoluacarmesim.model.Jogador;
@@ -30,14 +33,18 @@ import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.geometry.Bounds;
+import javafx.geometry.BoundingBox;
 import javafx.scene.shape.Rectangle;
 
 public class StreetsController {
@@ -83,12 +90,21 @@ public class StreetsController {
     private final List<Rectangle> receitas = new ArrayList<>();
     private final Map<Rectangle, Integer> idsReceitas = new HashMap<>();
     private final List<String[]> ingredientesColetaveisDaRua = new ArrayList<>();
+    private Rectangle mercadorView;
 
     private static final double DISTANCIA_MINIMA_INIMIGOS = 70;
     private static final double RAIO_DETECCAO_INIMIGO = 230;
-    private static final double DISTANCIA_INICIAR_COMBATE = 55;
+    private static final double DISTANCIA_INICIAR_COMBATE = 40;
+    private static final double HITBOX_JOGADOR_LARGURA = 34;
+    private static final double HITBOX_JOGADOR_ALTURA = 56;
+    private static final double HITBOX_INIMIGO_LARGURA = 36;
+    private static final double HITBOX_INIMIGO_ALTURA = 54;
+    private static final double HITBOX_BOSS_LARGURA = 62;
+    private static final double HITBOX_BOSS_ALTURA = 82;
     private static final double VELOCIDADE_BANDIDO = 85;
     private static final double VELOCIDADE_BEYONDER = 105;
+    private static final int SALA_ESPELHO_FINAL = 50;
+    public static final String NOME_ESPELHO_FINAL = "Espelho da Lua Carmesim";
 
     private boolean coletandoItem = false;
     private boolean menuAberto = false;
@@ -110,8 +126,8 @@ public class StreetsController {
         input = new Input(root);
         personagem = new Personagem(personagemView);
 
-        personagemView.setFitWidth(64);
-        personagemView.setFitHeight(64);
+        personagemView.setFitWidth(Personagem.TAMANHO_VISUAL);
+        personagemView.setFitHeight(Personagem.TAMANHO_VISUAL);
         personagemView.setPreserveRatio(true);
 
         configurarControles(root);
@@ -152,6 +168,7 @@ public class StreetsController {
                 atualizarInimigos(delta);
                 verificarColetaItem();
                 verificarColetaReceita();
+                verificarInteracaoMercador();
                 verificarContatoInimigo();
                 verificarFimDaRua();
             }
@@ -365,7 +382,7 @@ public class StreetsController {
         List<double[]> posicoes = new ArrayList<>();
 
         for (InimigoMapa inimigoMapa : inimigos) {
-            Rectangle inimigoView = inimigoMapa.getView();
+            ImageView inimigoView = inimigoMapa.getView();
             posicoes.add(new double[]{inimigoView.getLayoutX(), inimigoView.getLayoutY()});
         }
 
@@ -415,19 +432,26 @@ public class StreetsController {
         receitas.clear();
         idsReceitas.clear();
         ingredientesColetaveisDaRua.clear();
+        mercadorView = null;
 
         tipoRuaAtual = geradorRua.sortearTipoRua();
 
         desenharRua(tipoRuaAtual);
         long versaoAtual = novaVersaoRua();
 
-        gerarInimigos();
-        gerarItens();
-        gerarReceitaEmSegundoPlano(versaoAtual, numeroRua, tipoRuaAtual);
-        prepararItensColetaveisDaRuaEmSegundoPlano(versaoAtual);
+        if (ehSalaMercador(numeroRua)) {
+            gerarMercadorSeguro();
+        } else {
+            gerarInimigos();
+            gerarItens();
+            gerarReceitaEmSegundoPlano(versaoAtual, numeroRua, tipoRuaAtual);
+            prepararItensColetaveisDaRuaEmSegundoPlano(versaoAtual);
+        }
 
-        textoInfo.setText("Rua " + numeroRua + " - " + nomeBonitoRua(tipoRuaAtual) + " | I - Inventário | TAB - Menu");
-        textoInteracao.setText("");
+        atualizarTextoInfoRua();
+        textoInteracao.setText(ehSalaMercador(numeroRua)
+                ? "Sala segura. Aproxime-se do mercador e pressione F para negociar."
+                : "");
 
         personagemView.setLayoutX(70);
         personagemView.setLayoutY(300);
@@ -437,6 +461,33 @@ public class StreetsController {
 
         salvarRuaAtualNoEstado();
         atualizarRankingDaRunEmSegundoPlano(numeroRua);
+        concederEspelhoFinalSeNecessario();
+    }
+
+
+    private void concederEspelhoFinalSeNecessario() {
+        EstadoJogo estado = EstadoJogo.getInstance();
+
+        if (numeroRua < SALA_ESPELHO_FINAL || estado.isEspelhoFinalConcedido()) {
+            return;
+        }
+
+        if (estado.getInventario().possuiItem(NOME_ESPELHO_FINAL)) {
+            estado.setEspelhoFinalConcedido(true);
+            return;
+        }
+
+        ItemEspecial espelho = new ItemEspecial(
+                0,
+                NOME_ESPELHO_FINAL,
+                TipoItem.RELIQUIO,
+                "Um espelho frio que reflete uma sala que ainda não deveria existir.",
+                false
+        );
+
+        estado.getInventario().adicionarItem(espelho);
+        estado.setEspelhoFinalConcedido(true);
+        textoInteracao.setText("A sala 50 distorce o ciclo. Você recebeu: " + NOME_ESPELHO_FINAL + ".");
     }
 
     private void restaurarRuaSalva(EstadoJogo estado) {
@@ -448,6 +499,7 @@ public class StreetsController {
         receitas.clear();
         idsReceitas.clear();
         ingredientesColetaveisDaRua.clear();
+        mercadorView = null;
 
         long versaoAtual = novaVersaoRua();
 
@@ -468,7 +520,7 @@ public class StreetsController {
             }
 
             Inimigo inimigoModel = criarInimigoPorTipo(tipo);
-            Rectangle inimigoView = criarRetanguloInimigo(inimigoModel);
+            ImageView inimigoView = criarSpriteInimigo(inimigoModel);
             inimigoView.setLayoutX(posicao[0]);
             inimigoView.setLayoutY(posicao[1]);
 
@@ -506,8 +558,14 @@ public class StreetsController {
             camadaObjetos.getChildren().add(receita);
         }
 
-        textoInfo.setText("Rua " + numeroRua + " - " + nomeBonitoRua(tipoRuaAtual) + " | I - Inventário | TAB - Menu");
-        textoInteracao.setText("");
+        if (ehSalaMercador(numeroRua)) {
+            gerarMercadorSeguro();
+        }
+
+        atualizarTextoInfoRua();
+        textoInteracao.setText(ehSalaMercador(numeroRua)
+                ? "Sala segura. Aproxime-se do mercador e pressione F para negociar."
+                : "");
 
         personagemView.setLayoutX(70);
         personagemView.setLayoutY(300);
@@ -515,14 +573,27 @@ public class StreetsController {
         personagemView.setTranslateY(estado.getRuaPersonagemTranslateY());
         personagemView.toFront();
 
-        prepararItensColetaveisDaRuaEmSegundoPlano(versaoAtual);
+        if (!ehSalaMercador(numeroRua)) {
+            prepararItensColetaveisDaRuaEmSegundoPlano(versaoAtual);
+        }
     }
 
     private void desenharRua(TipoRua tipoRua) {
 
-        Rectangle fundo = new Rectangle(0, 0, 1280, 720);
-        fundo.setFill(Color.rgb(12, 10, 14));
-        camadaCenario.getChildren().add(fundo);
+        ImageView fundo = criarImagemFundoRua(tipoRua);
+
+        if (fundo != null) {
+            camadaCenario.getChildren().add(fundo);
+            return;
+        }
+
+        /*
+         * Fallback: caso alguma imagem seja removida da pasta resources/image/fundos,
+         * o jogo ainda consegue abrir usando o cenário antigo desenhado por formas.
+         */
+        Rectangle fundoFallback = new Rectangle(0, 0, 1280, 720);
+        fundoFallback.setFill(Color.rgb(12, 10, 14));
+        camadaCenario.getChildren().add(fundoFallback);
 
         switch (tipoRua) {
 
@@ -537,6 +608,55 @@ public class StreetsController {
             case CRUZAMENTO:
                 desenharCruzamento();
                 break;
+        }
+    }
+
+    private ImageView criarImagemFundoRua(TipoRua tipoRua) {
+        String caminhoImagem = caminhoImagemFundoRua(tipoRua);
+
+        if (caminhoImagem == null) {
+            return null;
+        }
+
+        java.net.URL recurso = getClass().getResource(caminhoImagem);
+
+        if (recurso == null) {
+            System.out.println("Imagem de fundo não encontrada: " + caminhoImagem);
+            return null;
+        }
+
+        Image imagem = new Image(recurso.toExternalForm());
+        ImageView fundo = new ImageView(imagem);
+
+        fundo.setFitWidth(1280);
+        fundo.setFitHeight(720);
+        fundo.setPreserveRatio(false);
+        fundo.setSmooth(false);
+        fundo.setMouseTransparent(true);
+        fundo.setLayoutX(0);
+        fundo.setLayoutY(0);
+
+        return fundo;
+    }
+
+    private String caminhoImagemFundoRua(TipoRua tipoRua) {
+        if (tipoRua == null) {
+            return "/image/fundos/rua.png";
+        }
+
+        switch (tipoRua) {
+
+            case RUA_RETA:
+                return "/image/fundos/rua.png";
+
+            case VIELA_ESTREITA:
+                return "/image/fundos/viela.png";
+
+            case CRUZAMENTO:
+                return "/image/fundos/Cruzamento.png";
+
+            default:
+                return "/image/fundos/rua.png";
         }
     }
 
@@ -594,18 +714,8 @@ public class StreetsController {
         );
     }
 
-    private Rectangle criarRetanguloInimigo(Inimigo inimigoModel) {
-        Rectangle inimigo = new Rectangle(64, 64);
-        inimigo.setArcWidth(10);
-        inimigo.setArcHeight(10);
-
-        if (inimigoModel.getTipoInimigo() == TipoInimigo.BEYONDER) {
-            inimigo.setFill(Color.rgb(90, 40, 160));
-        } else {
-            inimigo.setFill(Color.rgb(120, 20, 35));
-        }
-
-        return inimigo;
+    private ImageView criarSpriteInimigo(Inimigo inimigoModel) {
+        return SpriteInimigoFactory.criar(inimigoModel);
     }
 
     private Rectangle criarRetanguloItem() {
@@ -624,6 +734,82 @@ public class StreetsController {
         return receita;
     }
 
+    private boolean ehSalaMercador(int numeroRua) {
+        return numeroRua > 0 && numeroRua % 10 == 0;
+    }
+
+    private void atualizarTextoInfoRua() {
+        String nomeLocal = ehSalaMercador(numeroRua)
+                ? "Sala Segura do Mercador"
+                : nomeBonitoRua(tipoRuaAtual);
+
+        textoInfo.setText(
+                "Rua "
+                        + numeroRua
+                        + " - "
+                        + nomeLocal
+                        + " | Ouro: "
+                        + EstadoJogo.getInstance().getMoedasOuro()
+                        + " | I - Inventário | TAB - Menu"
+        );
+    }
+
+    private void gerarMercadorSeguro() {
+        mercadorView = new Rectangle(58, 78);
+        mercadorView.setLayoutX(630);
+        mercadorView.setLayoutY(308);
+        mercadorView.setArcWidth(12);
+        mercadorView.setArcHeight(12);
+        mercadorView.setFill(Color.rgb(45, 90, 130));
+        mercadorView.setStroke(Color.rgb(214, 175, 55));
+        mercadorView.setStrokeWidth(3);
+
+        Rectangle bancada = new Rectangle(555, 392, 215, 36);
+        bancada.setArcWidth(8);
+        bancada.setArcHeight(8);
+        bancada.setFill(Color.rgb(65, 42, 24));
+        bancada.setStroke(Color.rgb(125, 85, 45));
+        bancada.setStrokeWidth(2);
+
+        camadaObjetos.getChildren().addAll(bancada, mercadorView);
+    }
+
+    private void verificarInteracaoMercador() {
+        if (mercadorView == null || combateAberto || menuAberto) {
+            return;
+        }
+
+        double distancia = calcularDistanciaDoPersonagem(mercadorView);
+
+        if (distancia <= 90) {
+            textoInteracao.setText("Mercador: pressione F para comprar ingredientes e receitas.");
+
+            if (input != null && input.interact) {
+                input.interact = false;
+                abrirMercado();
+            }
+        }
+    }
+
+    private void abrirMercado() {
+        try {
+            menuAberto = false;
+            limparInputMovimento();
+
+            if (loop != null) {
+                loop.stop();
+            }
+
+            salvarRuaAtualNoEstado();
+            novaVersaoRua();
+
+            App.setRoot("mercado");
+        } catch (IOException e) {
+            e.printStackTrace();
+            textoInteracao.setText("Erro ao abrir o mercador.");
+        }
+    }
+
     private void gerarInimigos() {
 
         int quantidade = geradorRua.sortearQuantidadeInimigos(numeroRua);
@@ -631,7 +817,7 @@ public class StreetsController {
         for (int i = 0; i < quantidade; i++) {
 
             Inimigo inimigoModel = sortearInimigoPorProgresso();
-            Rectangle inimigoView = criarRetanguloInimigo(inimigoModel);
+            ImageView inimigoView = criarSpriteInimigo(inimigoModel);
 
             boolean posicaoValida = false;
 
@@ -671,28 +857,28 @@ public class StreetsController {
     }
 
     private double calcularChanceBeyonder() {
-        if (numeroRua <= 2) {
-            return 0.05;
+        if (numeroRua <= 10) {
+            return 0.0;
         }
 
-        if (numeroRua <= 5) {
-            return 0.12;
+        if (numeroRua <= 14) {
+            return 0.20;
         }
 
-        if (numeroRua <= 8) {
-            return 0.25;
+        if (numeroRua <= 19) {
+            return 0.35;
         }
 
-        if (numeroRua <= 12) {
-            return 0.45;
+        if (numeroRua <= 24) {
+            return 0.50;
         }
 
-        if (numeroRua <= 16) {
+        if (numeroRua <= 29) {
             return 0.65;
         }
 
-        if (numeroRua <= 20) {
-            return 0.85;
+        if (numeroRua <= 39) {
+            return 0.80;
         }
 
         return 1.0;
@@ -713,41 +899,42 @@ public class StreetsController {
                 0,
                 "Bandido das Vielas",
                 "Um criminoso comum tentando sobreviver nas ruas distorcidas.",
-                80 + numeroRua * 4,
-                8 + numeroRua,
-                arma == Bandido.TipoArma.DESARMADO ? 0 : 6 + numeroRua,
-                2 + numeroRua / 4,
-                2,
+                55 + numeroRua * 2,
+                5 + numeroRua / 2,
+                arma == Bandido.TipoArma.DESARMADO ? 0 : 4 + numeroRua / 2,
+                1 + numeroRua / 8,
+                1,
                 null,
                 "Sangue Coagulado",
-                5 + numeroRua,
-                35,
+                4 + numeroRua / 2,
+                30,
                 arma,
-                1 + numeroRua
+                Math.max(1, numeroRua / 2)
         );
     }
 
     private Beyonder criarBeyonderAleatorio() {
         int sequencia = sortearSequenciaBeyonder();
+        int poderSequencia = Math.max(0, 9 - sequencia);
         String nomePocao = sortearPocaoBeyonder(sequencia);
 
         Beyonder beyonder = new Beyonder(
                 0,
                 "Beyonder Hostil",
                 "Um usuário de poção enlouquecido pela influência da Lua Carmesim.",
-                110 + numeroRua * 6,
-                12 + numeroRua,
-                8 + numeroRua,
-                4 + numeroRua / 3,
-                3,
+                80 + numeroRua * 2 + poderSequencia * 18,
+                7 + numeroRua / 3 + poderSequencia * 2,
+                5 + numeroRua / 4 + poderSequencia * 2,
+                2 + numeroRua / 12 + poderSequencia,
+                1,
                 null,
                 "Sangue Negro",
-                12 + numeroRua * 2,
+                9 + numeroRua + poderSequencia * 5,
                 false,
-                85,
+                80,
                 sequencia,
-                80 + numeroRua * 2,
-                10,
+                60 + numeroRua + poderSequencia * 12,
+                12,
                 nomePocao,
                 false
         );
@@ -758,43 +945,53 @@ public class StreetsController {
     }
 
     private int sortearSequenciaBeyonder() {
-        if (numeroRua <= 6) {
+        if (numeroRua <= 19) {
             return 9;
         }
 
-        if (numeroRua <= 12) {
-            return Math.random() < 0.75 ? 9 : 8;
+        if (numeroRua <= 29) {
+            return Math.random() < 0.75 ? 8 : 9;
         }
 
-        if (numeroRua <= 18) {
+        if (numeroRua <= 39) {
             double sorteio = Math.random();
 
-            if (sorteio < 0.50) {
-                return 9;
+            if (sorteio < 0.70) {
+                return 7;
             }
 
-            if (sorteio < 0.85) {
+            if (sorteio < 0.92) {
                 return 8;
             }
 
-            return 7;
+            return 9;
+        }
+
+        if (numeroRua <= 49) {
+            double sorteio = Math.random();
+
+            if (sorteio < 0.70) {
+                return 6;
+            }
+
+            if (sorteio < 0.92) {
+                return 7;
+            }
+
+            return 8;
         }
 
         double sorteio = Math.random();
 
-        if (sorteio < 0.40) {
-            return 8;
-        }
-
         if (sorteio < 0.70) {
-            return 7;
+            return 5;
         }
 
-        if (sorteio < 0.90) {
+        if (sorteio < 0.92) {
             return 6;
         }
 
-        return 5;
+        return 7;
     }
 
     private String sortearPocaoBeyonder(int sequencia) {
@@ -912,22 +1109,22 @@ public class StreetsController {
 
     private double calcularChanceReceita() {
         if (numeroRua <= 3) {
-            return 0.20;
+            return 0.15;
         }
 
         if (numeroRua <= 6) {
-            return 0.25;
+            return 0.20;
         }
 
         if (numeroRua <= 10) {
-            return 0.30;
+            return 0.24;
         }
 
         if (numeroRua <= 14) {
-            return 0.35;
+            return 0.28;
         }
 
-        return 0.65;
+        return 0.52;
     }
 
     private FormulaPocao sortearReceitaDisponivel(ReceitaDAO receitaDAO, int idJogador) throws SQLException {
@@ -979,19 +1176,19 @@ public class StreetsController {
     private int sortearNivelReceitaPorRaridade() {
         double sorteio = Math.random();
 
-        if (sorteio < 0.55) {
+        if (sorteio < 0.58) {
             return 9;
         }
 
-        if (sorteio < 0.78) {
+        if (sorteio < 0.81) {
             return 8;
         }
 
-        if (sorteio < 0.91) {
+        if (sorteio < 0.93) {
             return 7;
         }
 
-        if (sorteio < 0.98) {
+        if (sorteio < 0.985) {
             return 6;
         }
 
@@ -1037,11 +1234,16 @@ public class StreetsController {
             itens.remove(itemColetado);
             camadaObjetos.getChildren().remove(itemColetado);
 
-            ItemEspecial item = sortearItemColetavel();
-
-            EstadoJogo.getInstance().getInventario().adicionarItem(item);
-
-            textoInteracao.setText("Você coletou: " + item.getNomeItem() + ".");
+            if (Math.random() < 0.28) {
+                int moedas = sortearMoedasNoChao();
+                EstadoJogo.getInstance().adicionarMoedasOuro(moedas);
+                atualizarTextoInfoRua();
+                textoInteracao.setText("Você coletou " + moedas + " Moedas de Ouro.");
+            } else {
+                ItemEspecial item = sortearItemColetavel();
+                EstadoJogo.getInstance().getInventario().adicionarItem(item);
+                textoInteracao.setText("Você coletou: " + item.getNomeItem() + ".");
+            }
 
             Platform.runLater(() -> coletandoItem = false);
         }
@@ -1049,20 +1251,30 @@ public class StreetsController {
 
 
     private ItemEspecial sortearItemColetavel() {
-        if (!ingredientesColetaveisDaRua.isEmpty()) {
-            int indice = (int) (Math.random() * ingredientesColetaveisDaRua.size());
-            String[] ingrediente = ingredientesColetaveisDaRua.get(indice);
+        List<String[]> ingredientesBaixaRaridade = new ArrayList<>();
 
-            return new ItemEspecial(
-                    0,
-                    ingrediente[0],
-                    TipoItem.INGREDIENTE,
-                    ingrediente[1],
-                    false
-            );
+        for (String[] ingrediente : ingredientesColetaveisDaRua) {
+            EntradaItem catalogado = CatalogoItens.buscarPorNome(ingrediente[0]);
+            if (catalogado == null
+                    || catalogado.getRaridade().ordinal() <= CatalogoItens.Raridade.INCOMUM.ordinal()) {
+                ingredientesBaixaRaridade.add(ingrediente);
+            }
         }
 
-        return sortearIngredienteBasico();
+        if (!ingredientesBaixaRaridade.isEmpty() && Math.random() < 0.65) {
+            int indice = (int) (Math.random() * ingredientesBaixaRaridade.size());
+            String[] ingrediente = ingredientesBaixaRaridade.get(indice);
+            EntradaItem catalogado = CatalogoItens.sortearPorNomeOuBasico(ingrediente[0]);
+            return catalogado.criarItem();
+        }
+
+        return CatalogoItens.sortearItemDeChao().criarItem();
+    }
+
+    private int sortearMoedasNoChao() {
+        int base = 1 + (int) (Math.random() * 4);
+        int bonusProfundidade = Math.max(0, numeroRua / 15);
+        return base + bonusProfundidade;
     }
 
     private void prepararItensColetaveisDaRuaEmSegundoPlano(long versaoEsperada) {
@@ -1253,14 +1465,15 @@ public class StreetsController {
     private void atualizarInimigos(double delta) {
 
         for (InimigoMapa inimigoMapa : inimigos) {
-            Rectangle inimigoView = inimigoMapa.getView();
-            double distancia = calcularDistanciaDoPersonagem(inimigoView);
+            ImageView inimigoView = inimigoMapa.getView();
+            double distancia = calcularDistanciaDoPersonagem(inimigoView, inimigoMapa.getInimigo());
 
             if (distancia <= RAIO_DETECCAO_INIMIGO) {
                 inimigoMapa.setPerseguindo(true);
             }
 
             if (!inimigoMapa.isPerseguindo()) {
+                SpriteInimigoFactory.pararAnimacao(inimigoView);
                 continue;
             }
 
@@ -1278,18 +1491,16 @@ public class StreetsController {
     }
 
     private void moverInimigoEmDirecaoAoPersonagem(InimigoMapa inimigoMapa, double delta) {
-        Rectangle inimigoView = inimigoMapa.getView();
+        ImageView inimigoView = inimigoMapa.getView();
 
-        double centroInimigoX = inimigoView.getLayoutX() + inimigoView.getWidth() / 2;
-        double centroInimigoY = inimigoView.getLayoutY() + inimigoView.getHeight() / 2;
+        Bounds hitboxInimigo = hitboxInimigo(inimigoView, inimigoMapa.getInimigo());
+        Bounds hitboxPersonagem = hitboxPersonagem();
 
-        double centroPersonagemX = personagemView.getLayoutX()
-                + personagemView.getTranslateX()
-                + personagemView.getFitWidth() / 2;
+        double centroInimigoX = centroX(hitboxInimigo);
+        double centroInimigoY = centroY(hitboxInimigo);
 
-        double centroPersonagemY = personagemView.getLayoutY()
-                + personagemView.getTranslateY()
-                + personagemView.getFitHeight() / 2;
+        double centroPersonagemX = centroX(hitboxPersonagem);
+        double centroPersonagemY = centroY(hitboxPersonagem);
 
         double diferencaX = centroPersonagemX - centroInimigoX;
         double diferencaY = centroPersonagemY - centroInimigoY;
@@ -1305,11 +1516,16 @@ public class StreetsController {
         double direcaoX = diferencaX / distancia;
         double direcaoY = diferencaY / distancia;
 
+        SpriteInimigoFactory.atualizarAndando(inimigoView, direcaoX, direcaoY, delta);
         inimigoView.setLayoutX(inimigoView.getLayoutX() + direcaoX * movimento);
         inimigoView.setLayoutY(inimigoView.getLayoutY() + direcaoY * movimento);
     }
 
     private double getVelocidadeInimigo(Inimigo inimigo) {
+        if (inimigo.getTipoInimigo() == TipoInimigo.BOSS) {
+            return 0;
+        }
+
         if (inimigo.getTipoInimigo() == TipoInimigo.BEYONDER) {
             return VELOCIDADE_BEYONDER;
         }
@@ -1317,22 +1533,76 @@ public class StreetsController {
         return VELOCIDADE_BANDIDO;
     }
 
-    private double calcularDistanciaDoPersonagem(Rectangle inimigoView) {
-        double centroInimigoX = inimigoView.getLayoutX() + inimigoView.getWidth() / 2;
-        double centroInimigoY = inimigoView.getLayoutY() + inimigoView.getHeight() / 2;
+    private double calcularDistanciaDoPersonagem(Node alvo) {
+        return calcularDistanciaDoPersonagem(alvo, null);
+    }
 
-        double centroPersonagemX = personagemView.getLayoutX()
-                + personagemView.getTranslateX()
-                + personagemView.getFitWidth() / 2;
+    private double calcularDistanciaDoPersonagem(Node alvo, Inimigo inimigo) {
+        Bounds hitboxAlvo;
 
-        double centroPersonagemY = personagemView.getLayoutY()
-                + personagemView.getTranslateY()
-                + personagemView.getFitHeight() / 2;
+        if (alvo instanceof ImageView && inimigo != null) {
+            hitboxAlvo = hitboxInimigo((ImageView) alvo, inimigo);
+        } else {
+            hitboxAlvo = alvo.getBoundsInParent();
+        }
 
-        double diferencaX = centroPersonagemX - centroInimigoX;
-        double diferencaY = centroPersonagemY - centroInimigoY;
+        return distanciaEntreHitboxes(hitboxPersonagem(), hitboxAlvo);
+    }
+
+    private double distanciaEntreHitboxes(Bounds a, Bounds b) {
+        double centroAX = centroX(a);
+        double centroAY = centroY(a);
+        double centroBX = centroX(b);
+        double centroBY = centroY(b);
+
+        double diferencaX = centroAX - centroBX;
+        double diferencaY = centroAY - centroBY;
 
         return Math.sqrt(diferencaX * diferencaX + diferencaY * diferencaY);
+    }
+
+    private Bounds hitboxPersonagem() {
+        return hitboxCentral(personagemView, HITBOX_JOGADOR_LARGURA, HITBOX_JOGADOR_ALTURA, 18, true);
+    }
+
+    private Bounds hitboxInimigo(ImageView inimigoView, Inimigo inimigo) {
+        boolean boss = inimigo != null && inimigo.getTipoInimigo() == TipoInimigo.BOSS;
+        double largura = boss ? HITBOX_BOSS_LARGURA : HITBOX_INIMIGO_LARGURA;
+        double altura = boss ? HITBOX_BOSS_ALTURA : HITBOX_INIMIGO_ALTURA;
+        double deslocamentoY = boss ? 24 : 18;
+
+        return hitboxCentral(inimigoView, largura, altura, deslocamentoY, false);
+    }
+
+    private Bounds hitboxCentral(ImageView view, double largura, double altura, double deslocamentoY, boolean usarTranslateY) {
+        double larguraVisual = view.getFitWidth() > 0 ? view.getFitWidth() : view.getBoundsInParent().getWidth();
+        double alturaVisual = view.getFitHeight() > 0 ? view.getFitHeight() : view.getBoundsInParent().getHeight();
+
+        double centroX = view.getLayoutX() + view.getTranslateX() + larguraVisual / 2;
+        double centroY = view.getLayoutY() + (usarTranslateY ? view.getTranslateY() : 0) + alturaVisual / 2 + deslocamentoY;
+
+        return new BoundingBox(
+                centroX - largura / 2,
+                centroY - altura / 2,
+                largura,
+                altura
+        );
+    }
+
+    private double centroX(Node node) {
+        return centroX(node.getBoundsInParent());
+    }
+
+    private double centroY(Node node) {
+        return centroY(node.getBoundsInParent());
+    }
+
+    private double centroX(Bounds bounds) {
+        return bounds.getMinX() + bounds.getWidth() / 2;
+    }
+
+    private double centroY(Bounds bounds) {
+        return bounds.getMinY() + bounds.getHeight() / 2;
     }
 
     private void verificarContatoInimigo() {
@@ -1342,11 +1612,14 @@ public class StreetsController {
         }
 
         for (InimigoMapa inimigoMapa : inimigos) {
-            Rectangle inimigoView = inimigoMapa.getView();
-            double distancia = calcularDistanciaDoPersonagem(inimigoView);
+            ImageView inimigoView = inimigoMapa.getView();
+            double distancia = calcularDistanciaDoPersonagem(inimigoView, inimigoMapa.getInimigo());
+
+            Bounds hitboxJogador = hitboxPersonagem();
+            Bounds hitboxInimigo = hitboxInimigo(inimigoView, inimigoMapa.getInimigo());
 
             if (distancia <= DISTANCIA_INICIAR_COMBATE
-                    || personagemView.getBoundsInParent().intersects(inimigoView.getBoundsInParent())) {
+                    || hitboxJogador.intersects(hitboxInimigo)) {
                 iniciarCombate(inimigoMapa);
                 return;
             }
@@ -1375,16 +1648,72 @@ public class StreetsController {
     }
 
     private void finalizarCombateComVitoria(InimigoMapa inimigoMapa) {
-        Rectangle inimigoView = inimigoMapa.getView();
+        ImageView inimigoView = inimigoMapa.getView();
 
         inimigos.remove(inimigoMapa);
         camadaObjetos.getChildren().remove(inimigoView);
+
+        String recompensas = concederRecompensasDoInimigo(inimigoMapa.getInimigo());
         salvarRuaAtualNoEstado();
 
         combateAberto = false;
-        textoInteracao.setText("Você derrotou " + nomeTipoInimigo(inimigoMapa.getInimigo()) + ".");
+        textoInteracao.setText("Você derrotou "
+                + nomeTipoInimigo(inimigoMapa.getInimigo())
+                + recompensas);
 
         Platform.runLater(() -> rootRua.getScene().getRoot().requestFocus());
+    }
+
+    private String concederRecompensasDoInimigo(Inimigo inimigoDerrotado) {
+        if (inimigoDerrotado == null) {
+            return ".";
+        }
+
+        int moedas = calcularMoedasDropadas(inimigoDerrotado);
+        EstadoJogo.getInstance().adicionarMoedasOuro(moedas);
+        atualizarTextoInfoRua();
+
+        List<String> partes = new ArrayList<>();
+        partes.add(moedas + " Moedas de Ouro");
+
+        EntradaItem drop = sortearItemDropado(inimigoDerrotado);
+        if (drop != null) {
+            EstadoJogo.getInstance().getInventario().adicionarItem(drop.criarItem());
+            partes.add(drop.getNome() + " (" + CatalogoItens.nomeBonitoRaridade(drop.getRaridade()) + ")");
+        }
+
+        return ". Drop: " + String.join(" + ", partes) + ".";
+    }
+
+    private int calcularMoedasDropadas(Inimigo inimigoDerrotado) {
+        if (inimigoDerrotado instanceof Beyonder) {
+            Beyonder beyonder = (Beyonder) inimigoDerrotado;
+            int poderSequencia = Math.max(1, 10 - beyonder.getSequencia());
+            return 8 + numeroRua / 2 + poderSequencia * 4 + (int) (Math.random() * 8);
+        }
+
+        if (inimigoDerrotado instanceof Bandido) {
+            Bandido bandido = (Bandido) inimigoDerrotado;
+            return Math.max(2, bandido.getMoedaRoubada()) + 1 + (int) (Math.random() * 4);
+        }
+
+        return 5 + (int) (Math.random() * 8);
+    }
+
+    private EntradaItem sortearItemDropado(Inimigo inimigoDerrotado) {
+        if (inimigoDerrotado instanceof Beyonder) {
+            Beyonder beyonder = (Beyonder) inimigoDerrotado;
+            return CatalogoItens.sortearDropBeyonder(beyonder.getSequencia());
+        }
+
+        if (inimigoDerrotado instanceof Bandido) {
+            if (Math.random() < 0.58) {
+                return CatalogoItens.sortearDropBandido();
+            }
+            return null;
+        }
+
+        return null;
     }
 
     private void finalizarCombateComFuga(InimigoMapa inimigoMapa) {
@@ -1398,7 +1727,7 @@ public class StreetsController {
         Platform.runLater(() -> rootRua.getScene().getRoot().requestFocus());
     }
 
-    private void afastarInimigoDepoisDaFuga(Rectangle inimigoView) {
+    private void afastarInimigoDepoisDaFuga(ImageView inimigoView) {
         double xPersonagem = personagemView.getLayoutX() + personagemView.getTranslateX();
         double yPersonagem = personagemView.getLayoutY() + personagemView.getTranslateY();
 
@@ -1417,6 +1746,10 @@ public class StreetsController {
     }
 
     private String nomeTipoInimigo(Inimigo inimigo) {
+        if (inimigo.getTipoInimigo() == TipoInimigo.BOSS) {
+            return "Boss";
+        }
+
         if (inimigo.getTipoInimigo() == TipoInimigo.BEYONDER) {
             return "Beyonder";
         }
@@ -1526,7 +1859,7 @@ public class StreetsController {
         }
     }
 
-    private void limitarInimigoNaRua(Rectangle inimigo) {
+    private void limitarInimigoNaRua(ImageView inimigo) {
         limitarInimigoX(inimigo, 0, 1180);
 
         switch (tipoRuaAtual) {
@@ -1544,7 +1877,7 @@ public class StreetsController {
         }
     }
 
-    private void limitarInimigoCruzamento(Rectangle inimigo) {
+    private void limitarInimigoCruzamento(ImageView inimigo) {
         double x = inimigo.getLayoutX();
         double y = inimigo.getLayoutY();
 
@@ -1564,7 +1897,7 @@ public class StreetsController {
         }
     }
 
-    private void limitarInimigoX(Rectangle inimigo, double minimo, double maximo) {
+    private void limitarInimigoX(ImageView inimigo, double minimo, double maximo) {
         if (inimigo.getLayoutX() < minimo) {
             inimigo.setLayoutX(minimo);
         }
@@ -1574,7 +1907,7 @@ public class StreetsController {
         }
     }
 
-    private void limitarInimigoY(Rectangle inimigo, double minimo, double maximo) {
+    private void limitarInimigoY(ImageView inimigo, double minimo, double maximo) {
         if (inimigo.getLayoutY() < minimo) {
             inimigo.setLayoutY(minimo);
         }
@@ -1602,16 +1935,16 @@ public class StreetsController {
         }
     }
 
-    private boolean estaLongeDosOutrosInimigos(Rectangle novoInimigo) {
+    private boolean estaLongeDosOutrosInimigos(ImageView novoInimigo) {
 
-        double centroNovoX = novoInimigo.getLayoutX() + novoInimigo.getWidth() / 2;
-        double centroNovoY = novoInimigo.getLayoutY() + novoInimigo.getHeight() / 2;
+        double centroNovoX = centroX(novoInimigo);
+        double centroNovoY = centroY(novoInimigo);
 
         for (InimigoMapa inimigoExistente : inimigos) {
-            Rectangle inimigoView = inimigoExistente.getView();
+            ImageView inimigoView = inimigoExistente.getView();
 
-            double centroExistenteX = inimigoView.getLayoutX() + inimigoView.getWidth() / 2;
-            double centroExistenteY = inimigoView.getLayoutY() + inimigoView.getHeight() / 2;
+            double centroExistenteX = centroX(inimigoView);
+            double centroExistenteY = centroY(inimigoView);
 
             double diferencaX = centroNovoX - centroExistenteX;
             double diferencaY = centroNovoY - centroExistenteY;

@@ -31,6 +31,9 @@ public class EstadoJogo {
     private double ruaPersonagemTranslateX = 0;
     private double ruaPersonagemTranslateY = 0;
     private boolean ruaEmAndamento = false;
+    private boolean espelhoFinalConcedido = false;
+    private boolean bossFinalDerrotado = false;
+    private int moedasOuro = 0;
 
     private final List<double[]> posicoesInimigosRua = new ArrayList<>();
     private final List<TipoInimigo> tiposInimigosRua = new ArrayList<>();
@@ -170,6 +173,51 @@ public class EstadoJogo {
         return ruaEmAndamento;
     }
 
+    public boolean isEspelhoFinalConcedido() {
+        return espelhoFinalConcedido;
+    }
+
+    public void setEspelhoFinalConcedido(boolean espelhoFinalConcedido) {
+        this.espelhoFinalConcedido = espelhoFinalConcedido;
+    }
+
+    public boolean isBossFinalDerrotado() {
+        return bossFinalDerrotado;
+    }
+
+    public void setBossFinalDerrotado(boolean bossFinalDerrotado) {
+        this.bossFinalDerrotado = bossFinalDerrotado;
+    }
+
+    public int getMoedasOuro() {
+        return moedasOuro;
+    }
+
+    public void adicionarMoedasOuro(int quantidade) {
+        if (quantidade <= 0) {
+            return;
+        }
+
+        moedasOuro += quantidade;
+    }
+
+    public boolean gastarMoedasOuro(int quantidade) {
+        if (quantidade <= 0) {
+            return true;
+        }
+
+        if (moedasOuro < quantidade) {
+            return false;
+        }
+
+        moedasOuro -= quantidade;
+        return true;
+    }
+
+    public void setMoedasOuro(int moedasOuro) {
+        this.moedasOuro = Math.max(0, moedasOuro);
+    }
+
 
     public void resetarRua() {
         this.numeroRuaAtual = 1;
@@ -196,6 +244,9 @@ public class EstadoJogo {
 
         resetarRua();
         resetarPosicaoPersonagem();
+        this.espelhoFinalConcedido = false;
+        this.bossFinalDerrotado = false;
+        this.moedasOuro = 0;
 
         this.telaAnteriorInventario = "restroom";
         this.telaAnteriorConfigs = "menu";

@@ -6,5 +6,6 @@ public enum TipoItem {
     TALISMO,
     POCAO,
     INGREDIENTE,
-    RELIQUIO
+    RELIQUIO,
+    MOEDA
 }

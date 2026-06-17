@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="rootMercado"
+      prefWidth="1280.0"
+      prefHeight="720.0"
+      spacing="18.0"
+      style="-fx-background-color: #0b0508; -fx-padding: 30;"
+      xmlns="http://javafx.com/javafx/8.0.171"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.cls.projetoluacarmesim.MercadoController">
+
+    <children>
+        <Label fx:id="labelTitulo"
+               text="Mercador"
+               style="-fx-text-fill: #f5e6d0; -fx-font-size: 36px; -fx-font-family: Georgia; -fx-font-weight: bold;" />
+
+        <Label fx:id="labelMoedas"
+               text="Moedas de Ouro: 0"
+               style="-fx-text-fill: #d4af37; -fx-font-size: 24px; -fx-font-family: Georgia;" />
+
+        <Label text="O mercador aparece em salas seguras a cada 10 ruas. Receitas compradas são permanentes; ingredientes e moedas ainda pertencem à run."
+               wrapText="true"
+               style="-fx-text-fill: #c9b7a0; -fx-font-size: 17px; -fx-font-family: Georgia;" />
+
+        <HBox spacing="40.0">
+            <children>
+                <VBox spacing="10.0">
+                    <children>
+                        <Label text="Ingredientes"
+                               style="-fx-text-fill: #c96b6b; -fx-font-size: 24px; -fx-font-family: Georgia;" />
+                        <ListView fx:id="listaIngredientes"
+                                  prefWidth="560.0"
+                                  prefHeight="390.0" />
+                        <Button fx:id="botaoComprarIngrediente"
+                                text="Comprar Ingrediente"
+                                onAction="#comprarIngredienteSelecionado"
+                                prefWidth="260.0"
+                                prefHeight="42.0"
+                                style="-fx-font-size: 17px; -fx-font-family: Georgia;" />
+                    </children>
+                </VBox>
+
+                <VBox spacing="10.0">
+                    <children>
+                        <Label text="Receitas"
+                               style="-fx-text-fill: #c96b6b; -fx-font-size: 24px; -fx-font-family: Georgia;" />
+                        <ListView fx:id="listaReceitas"
+                                  prefWidth="560.0"
+                                  prefHeight="390.0" />
+                        <Button fx:id="botaoComprarReceita"
+                                text="Comprar Receita"
+                                onAction="#comprarReceitaSelecionada"
+                                prefWidth="260.0"
+                                prefHeight="42.0"
+                                style="-fx-font-size: 17px; -fx-font-family: Georgia;" />
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+
+        <Label fx:id="labelMensagem"
+               text="Selecione uma oferta e compre com Moedas de Ouro."
+               wrapText="true"
+               style="-fx-text-fill: #f5e6d0; -fx-font-size: 18px; -fx-font-family: Georgia;" />
+
+        <Button text="Voltar para a rua"
+                onAction="#voltarParaRua"
+                prefWidth="220.0"
+                prefHeight="40.0"
+                style="-fx-font-size: 16px; -fx-font-family: Georgia;" />
+
+        <Label text="ESC ou TAB - Voltar"
+               style="-fx-text-fill: #a5535d; -fx-font-size: 15px; -fx-font-family: Georgia;" />
+    </children>
+</VBox>

@@ -13,10 +13,23 @@ public class GeradorRua {
     }
 
     public int sortearQuantidadeInimigos(int numeroRua) {
-        int minimo = 1;
-        int maximo = Math.min(1 + numeroRua, 4);
+        if (numeroRua <= 5) {
+            return 1;
+        }
 
-        return random.nextInt(maximo - minimo + 1) + minimo;
+        if (numeroRua <= 10) {
+            return random.nextDouble() < 0.70 ? 1 : 2;
+        }
+
+        if (numeroRua <= 25) {
+            return random.nextBoolean() ? 1 : 2;
+        }
+
+        if (numeroRua <= 40) {
+            return 1 + random.nextInt(3);
+        }
+
+        return 2 + random.nextInt(2);
     }
 
     public int sortearQuantidadeItens(int numeroRua) {

@@ -49,7 +49,7 @@ public class InventarioController {
             }
 
             if (e.getCode() == KeyCode.ENTER) {
-                beberPocaoSelecionada();
+                usarItemSelecionado();
                 e.consume();
             }
         });
@@ -68,12 +68,19 @@ public class InventarioController {
     private void carregarItens() {
         listaItens.getItems().clear();
 
+        int moedas = EstadoJogo.getInstance().getMoedasOuro();
+        if (moedas > 0) {
+            listaItens.getItems().add("Moeda de Ouro - MOEDA x" + moedas);
+        }
+
         Map<String, Integer> itensAgrupados = EstadoJogo.getInstance()
                 .getInventario()
                 .getItensAgrupadosParaTela();
 
         if (itensAgrupados.isEmpty()) {
-            listaItens.getItems().add("Nenhum item obtido.");
+            if (moedas <= 0) {
+                listaItens.getItems().add("Nenhum item obtido.");
+            }
             return;
         }
 
@@ -137,18 +144,33 @@ public class InventarioController {
         }
     }
 
-    private void beberPocaoSelecionada() {
+    private void usarItemSelecionado() {
         String linhaSelecionada = listaItens.getSelectionModel().getSelectedItem();
 
         if (linhaSelecionada == null || linhaSelecionada.isBlank()) {
-            mostrarAviso("Poção", "Selecione uma poção na lista de itens.");
+            mostrarAviso("Item", "Selecione um item na lista.");
             return;
         }
 
         String nomeItem = extrairNomeItemDaLinha(linhaSelecionada);
 
-        if (nomeItem == null || !nomeItem.startsWith("Poção de ")) {
-            mostrarAviso("Poção", "O item selecionado não é uma poção.");
+        if (nomeItem == null) {
+            mostrarAviso("Item", "Esse item não pode ser usado.");
+            return;
+        }
+
+        if (nomeItem.equalsIgnoreCase("Moeda de Ouro")) {
+            mostrarAviso("Moeda de Ouro", "Você possui " + EstadoJogo.getInstance().getMoedasOuro() + " moedas de ouro nesta run.");
+            return;
+        }
+
+        if (nomeItem.equalsIgnoreCase(StreetsController.NOME_ESPELHO_FINAL)) {
+            usarEspelhoFinal();
+            return;
+        }
+
+        if (!nomeItem.startsWith("Poção de ")) {
+            mostrarAviso("Item", "Esse item ainda não possui interação especial.");
             return;
         }
 
@@ -183,6 +205,36 @@ public class InventarioController {
                     "Erro no banco",
                     "Não foi possível beber a poção.\n\n" + e.getMessage()
             );
+        }
+    }
+
+
+    private void usarEspelhoFinal() {
+        boolean removeu = EstadoJogo.getInstance()
+                .getInventario()
+                .removerPrimeiroItem(StreetsController.NOME_ESPELHO_FINAL, TipoItem.RELIQUIO);
+
+        if (!removeu) {
+            mostrarAviso("Espelho", "O espelho não foi encontrado no inventário.");
+            return;
+        }
+
+        carregarItens();
+        mostrarAviso(
+                "Espelho da Lua Carmesim",
+                "O espelho abre uma sala impossível. Você será levado para a Final Room."
+        );
+
+        try {
+            Object controller = App.setRoot("Final_room");
+
+            if (controller instanceof Final_roomController) {
+                Final_roomController finalRoomController = (Final_roomController) controller;
+                finalRoomController.startGame(App.getStage().getScene());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            mostrarAviso("Erro", "Não foi possível abrir a Final Room.");
         }
     }
 

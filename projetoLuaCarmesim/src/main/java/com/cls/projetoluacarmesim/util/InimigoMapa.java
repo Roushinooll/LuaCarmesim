@@ -1,15 +1,15 @@
 package com.cls.projetoluacarmesim.util;
 
 import com.cls.projetoluacarmesim.model.Inimigo;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.image.ImageView;
 
 public class InimigoMapa {
 
     private final Inimigo inimigo;
-    private final Rectangle view;
+    private final ImageView view;
     private boolean perseguindo;
 
-    public InimigoMapa(Inimigo inimigo, Rectangle view) {
+    public InimigoMapa(Inimigo inimigo, ImageView view) {
         this.inimigo = inimigo;
         this.view = view;
         this.perseguindo = false;
@@ -19,7 +19,7 @@ public class InimigoMapa {
         return inimigo;
     }
 
-    public Rectangle getView() {
+    public ImageView getView() {
         return view;
     }
 

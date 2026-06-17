@@ -152,6 +152,20 @@ public class ReceitaDAO {
         }
     }
 
+
+    public List<FormulaPocao> listarDisponiveisParaCompra(int idJogador, int nivelSequencia) throws SQLException {
+        List<FormulaPocao> formulas = listarNaoAprendidasPorNivel(idJogador, nivelSequencia);
+        List<FormulaPocao> permitidas = new ArrayList<>();
+
+        for (FormulaPocao formula : formulas) {
+            if (podeEncontrarFormula(idJogador, formula)) {
+                permitidas.add(formula);
+            }
+        }
+
+        return permitidas;
+    }
+
     public FormulaPocao sortearNaoAprendidaPorNivel(int idJogador, int nivelSequencia) throws SQLException {
         List<FormulaPocao> formulas = listarNaoAprendidasPorNivel(idJogador, nivelSequencia);
         List<FormulaPocao> formulasPermitidas = new ArrayList<>();

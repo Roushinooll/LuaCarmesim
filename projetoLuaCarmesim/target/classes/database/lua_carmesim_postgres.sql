@@ -39,7 +39,8 @@ CREATE TYPE tipo_item_enum AS ENUM (
     'talismo',
     'pocao',
     'ingrediente',
-    'reliquio'
+    'reliquio',
+    'moeda'
 );
 
 CREATE TYPE tipo_ingrediente_enum AS ENUM (
