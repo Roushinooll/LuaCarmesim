@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS jogador (
     id_jogador      SERIAL          PRIMARY KEY,
     nome            VARCHAR(100)    NOT NULL,
     sequencia_atual INT             NOT NULL DEFAULT 10,
+    caminho_atual   VARCHAR(50),
     sanidade_maxima INT             NOT NULL DEFAULT 100,
     sanidade_atual  INT             NOT NULL DEFAULT 100,
     criado_em       TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -198,13 +199,13 @@ CREATE TABLE IF NOT EXISTS jogador_formula (
 -- ============================================================
 
 INSERT INTO jogador (nome, sequencia_atual, sanidade_maxima, sanidade_atual)
-VALUES ('Protagonista', 9, 100, 85);
+VALUES ('Protagonista', 10, 100, 85);
 
 INSERT INTO progresso (id_jogador, sala_atual, andar_atual, status_run)
 VALUES (1, 3, 1, 'em_andamento');
 
 INSERT INTO ranking (id_jogador, total_salas_zeradas, melhor_sequencia)
-VALUES (1, 7, 9);
+VALUES (1, 7, 10);
 
 INSERT INTO buff_permanente (id_jogador, nome_buff, tipo, valor, descricao)
 VALUES (1, 'Mente Forjada', 'sanidade', 15,
@@ -402,3 +403,12 @@ ON CONFLICT (id_formula, nome_ingrediente) DO UPDATE SET
 -- ============================================================
 --  FIM DO SCRIPT
 -- ============================================================
+
+
+-- ============================================================
+-- MIGRAÇÃO: CAMINHO ATUAL DO JOGADOR
+-- Necessário para controlar a ordem de beber poções.
+-- ============================================================
+
+ALTER TABLE jogador
+ADD COLUMN IF NOT EXISTS caminho_atual VARCHAR(50);

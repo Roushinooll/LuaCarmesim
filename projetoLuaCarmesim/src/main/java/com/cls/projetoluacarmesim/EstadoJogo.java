@@ -1,9 +1,13 @@
 package com.cls.projetoluacarmesim;
 
 import com.cls.projetoluacarmesim.enums.TipoRua;
+import com.cls.projetoluacarmesim.enums.TipoInimigo;
 import com.cls.projetoluacarmesim.model.Jogador;
 import com.cls.projetoluacarmesim.util.InventarioManager;
+import com.cls.projetoluacarmesim.dao.JogadorDAO;
+import com.cls.projetoluacarmesim.dao.ItemDAO;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +23,8 @@ public class EstadoJogo {
     private boolean posicaoPersonagemSalva = false;
 
     private String telaAnteriorInventario = "restroom";
+    private String telaAnteriorConfigs = "menu";
+    private String telaAnteriorHabilidades = "streets";
 
     private int numeroRuaAtual = 1;
     private TipoRua tipoRuaAtual;
@@ -27,6 +33,7 @@ public class EstadoJogo {
     private boolean ruaEmAndamento = false;
 
     private final List<double[]> posicoesInimigosRua = new ArrayList<>();
+    private final List<TipoInimigo> tiposInimigosRua = new ArrayList<>();
     private final List<double[]> posicoesItensRua = new ArrayList<>();
     private final List<double[]> posicoesReceitasRua = new ArrayList<>();
     private final List<Integer> idsReceitasRua = new ArrayList<>();
@@ -81,6 +88,22 @@ public class EstadoJogo {
         return telaAnteriorInventario;
     }
 
+    public void setTelaAnteriorConfigs(String telaAnteriorConfigs) {
+        this.telaAnteriorConfigs = telaAnteriorConfigs;
+    }
+
+    public String getTelaAnteriorConfigs() {
+        return telaAnteriorConfigs;
+    }
+
+    public void setTelaAnteriorHabilidades(String telaAnteriorHabilidades) {
+        this.telaAnteriorHabilidades = telaAnteriorHabilidades;
+    }
+
+    public String getTelaAnteriorHabilidades() {
+        return telaAnteriorHabilidades;
+    }
+
     public void salvarEstadoRua(int numeroRua, double translateX, double translateY) {
         this.numeroRuaAtual = numeroRua;
         this.ruaPersonagemTranslateX = translateX;
@@ -94,6 +117,7 @@ public class EstadoJogo {
             double translateX,
             double translateY,
             List<double[]> posicoesInimigos,
+            List<TipoInimigo> tiposInimigos,
             List<double[]> posicoesItens,
             List<double[]> posicoesReceitas,
             List<Integer> idsReceitas
@@ -108,6 +132,9 @@ public class EstadoJogo {
         for (double[] posicao : posicoesInimigos) {
             this.posicoesInimigosRua.add(new double[]{posicao[0], posicao[1]});
         }
+
+        this.tiposInimigosRua.clear();
+        this.tiposInimigosRua.addAll(tiposInimigos);
 
         this.posicoesItensRua.clear();
         for (double[] posicao : posicoesItens) {
@@ -151,9 +178,57 @@ public class EstadoJogo {
         this.ruaPersonagemTranslateY = 0;
         this.ruaEmAndamento = false;
         this.posicoesInimigosRua.clear();
+        this.tiposInimigosRua.clear();
         this.posicoesItensRua.clear();
         this.posicoesReceitasRua.clear();
         this.idsReceitasRua.clear();
+    }
+
+    /**
+     * Reinicia a run quando o jogador morre.
+     * Mantém o jogador/receitas/conhecimento, mas remove os recursos físicos
+     * e apaga a progressão de poção da run atual.
+     */
+    public void resetarAposMorte() {
+        if (inventario != null) {
+            inventario.limparItensDaRun();
+        }
+
+        resetarRua();
+        resetarPosicaoPersonagem();
+
+        this.telaAnteriorInventario = "restroom";
+        this.telaAnteriorConfigs = "menu";
+        this.telaAnteriorHabilidades = "streets";
+
+        if (jogadorAtual == null) {
+            return;
+        }
+
+        jogadorAtual.setSequenciaAtual(10);
+        jogadorAtual.setCaminhoAtual(null);
+        jogadorAtual.setSanidadeAtual(jogadorAtual.getSanidadeMaxima());
+
+        if (jogadorAtual.getIdJogador() <= 0) {
+            return;
+        }
+
+        try {
+            JogadorDAO jogadorDAO = new JogadorDAO();
+            jogadorDAO.atualizarProgressaoPocao(jogadorAtual.getIdJogador(), 10, null);
+            jogadorDAO.atualizarSanidade(jogadorAtual.getIdJogador(), jogadorAtual.getSanidadeAtual());
+
+            ItemDAO itemDAO = new ItemDAO();
+            itemDAO.removerItensDaRun(jogadorAtual.getIdJogador());
+        } catch (SQLException e) {
+            System.out.println("Erro ao salvar reset de morte do jogador: " + e.getMessage());
+        }
+    }
+
+    public void resetarPosicaoPersonagem() {
+        this.personagemTranslateX = 0;
+        this.personagemTranslateY = 0;
+        this.posicaoPersonagemSalva = false;
     }
 
     public List<double[]> getPosicoesInimigosRua() {
@@ -164,6 +239,10 @@ public class EstadoJogo {
         }
 
         return copia;
+    }
+
+    public List<TipoInimigo> getTiposInimigosRua() {
+        return new ArrayList<>(tiposInimigosRua);
     }
 
     public List<double[]> getPosicoesItensRua() {

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefWidth="1280.0"
+            prefHeight="720.0"
+            style="-fx-background-color: linear-gradient(to bottom, #08050a, #170a12);"
+            xmlns="http://javafx.com/javafx/13"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.cls.projetoluacarmesim.CombateController">
+
+    <top>
+        <VBox spacing="6.0"
+              style="-fx-background-color: rgba(0,0,0,0.45); -fx-border-color: #6f1d2d; -fx-border-width: 0 0 3 0;">
+            <padding>
+                <Insets top="18.0" right="24.0" bottom="14.0" left="24.0" />
+            </padding>
+
+            <Label fx:id="labelTitulo"
+                   text="Combate"
+                   style="-fx-text-fill: #f5e6d0; -fx-font-size: 30px; -fx-font-family: Georgia; -fx-font-weight: bold;" />
+
+            <HBox spacing="30.0">
+                <Label fx:id="labelTurno"
+                       text="Turno 1"
+                       style="-fx-text-fill: #c9b7a0; -fx-font-size: 17px; -fx-font-family: Georgia;" />
+
+                <Label fx:id="labelAcoes"
+                       text="Ação disponível"
+                       style="-fx-text-fill: #d99b52; -fx-font-size: 17px; -fx-font-family: Georgia;" />
+
+                <Label fx:id="labelMunicao"
+                       text="Revólver: 6/6 balas"
+                       style="-fx-text-fill: #f0d08b; -fx-font-size: 17px; -fx-font-family: Georgia;" />
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <Pane prefWidth="1280.0" prefHeight="430.0">
+            <children>
+                <VBox layoutX="90.0"
+                      layoutY="78.0"
+                      prefWidth="330.0"
+                      prefHeight="250.0"
+                      alignment="CENTER"
+                      spacing="16.0"
+                      style="-fx-background-color: rgba(18, 16, 24, 0.92); -fx-border-color: #3b5468; -fx-border-width: 3px; -fx-border-radius: 8px; -fx-background-radius: 8px;">
+                    <children>
+                        <Label text="JOGADOR"
+                               style="-fx-text-fill: #d8e8ff; -fx-font-size: 24px; -fx-font-family: Georgia; -fx-font-weight: bold;" />
+
+                        <Label fx:id="labelJogador"
+                               text="Jogador | Vida teste: 100/100"
+                               wrapText="true"
+                               style="-fx-text-fill: white; -fx-font-size: 16px; -fx-font-family: Georgia;" />
+
+                        <Label text="Ataque físico: dano baixo. Revólver: 1 tiro por ação, dano alto e munição limitada."
+                               wrapText="true"
+                               prefWidth="280.0"
+                               style="-fx-text-fill: #9fb8d1; -fx-font-size: 13px; -fx-font-family: Georgia;" />
+                    </children>
+                </VBox>
+
+                <VBox layoutX="860.0"
+                      layoutY="78.0"
+                      prefWidth="330.0"
+                      prefHeight="250.0"
+                      alignment="CENTER"
+                      spacing="16.0"
+                      style="-fx-background-color: rgba(24, 10, 16, 0.92); -fx-border-color: #8b1e2d; -fx-border-width: 3px; -fx-border-radius: 8px; -fx-background-radius: 8px;">
+                    <children>
+                        <Label text="INIMIGO"
+                               style="-fx-text-fill: #ffcad0; -fx-font-size: 24px; -fx-font-family: Georgia; -fx-font-weight: bold;" />
+
+                        <Label fx:id="labelInimigo"
+                               text="Inimigo | Vida: 100/100"
+                               wrapText="true"
+                               style="-fx-text-fill: white; -fx-font-size: 16px; -fx-font-family: Georgia;" />
+                    </children>
+                </VBox>
+
+                <Label layoutX="592.0"
+                       layoutY="158.0"
+                       text="VS"
+                       style="-fx-text-fill: #b73244; -fx-font-size: 58px; -fx-font-family: Georgia; -fx-font-weight: bold;" />
+            </children>
+        </Pane>
+    </center>
+
+    <bottom>
+        <HBox prefHeight="250.0"
+              spacing="18.0"
+              style="-fx-background-color: rgba(0,0,0,0.62); -fx-border-color: #6f1d2d; -fx-border-width: 3 0 0 0;">
+            <padding>
+                <Insets top="18.0" right="24.0" bottom="18.0" left="24.0" />
+            </padding>
+
+            <VBox prefWidth="350.0">
+                <children>
+                    <VBox fx:id="menuAcoesPrincipais" spacing="8.0" prefWidth="350.0">
+                        <children>
+                            <Button fx:id="botaoAtacar"
+                                    text="Ataque físico"
+                                    onAction="#atacarFisico"
+                                    prefWidth="310.0"
+                                    prefHeight="34.0"
+                                    style="-fx-font-size: 14px; -fx-font-family: Georgia;" />
+
+                            <Button fx:id="botaoAtirar"
+                                    text="Atirar com Revólver"
+                                    onAction="#atirarRevolver"
+                                    prefWidth="310.0"
+                                    prefHeight="34.0"
+                                    style="-fx-font-size: 14px; -fx-font-family: Georgia;" />
+
+                            <Button fx:id="botaoDefender"
+                                    text="Defender"
+                                    onAction="#defender"
+                                    prefWidth="310.0"
+                                    prefHeight="34.0"
+                                    style="-fx-font-size: 14px; -fx-font-family: Georgia;" />
+
+                            <Button fx:id="botaoConversar"
+                                    text="Arte da Conversa"
+                                    onAction="#conversar"
+                                    prefWidth="310.0"
+                                    prefHeight="34.0"
+                                    style="-fx-font-size: 14px; -fx-font-family: Georgia;" />
+
+                            <Button fx:id="botaoAbrirHabilidades"
+                                    text="Habilidades"
+                                    onAction="#abrirMenuHabilidades"
+                                    prefWidth="310.0"
+                                    prefHeight="34.0"
+                                    style="-fx-font-size: 14px; -fx-font-family: Georgia;" />
+                        </children>
+                    </VBox>
+
+                    <VBox fx:id="menuHabilidadesCombate"
+                          spacing="8.0"
+                          prefWidth="350.0"
+                          visible="false"
+                          managed="false">
+                        <children>
+                            <Label text="Habilidades de Caminho"
+                                   wrapText="true"
+                                   prefWidth="310.0"
+                                   style="-fx-text-fill: #f5e6d0; -fx-font-size: 16px; -fx-font-family: Georgia; -fx-font-weight: bold;" />
+
+                            <Label text="Escolha uma habilidade. Usar habilidade encerra sua ação do turno."
+                                   wrapText="true"
+                                   prefWidth="310.0"
+                                   style="-fx-text-fill: #a8868a; -fx-font-size: 12px; -fx-font-family: Georgia;" />
+
+                            <ScrollPane fitToWidth="true"
+                                        hbarPolicy="NEVER"
+                                        vbarPolicy="AS_NEEDED"
+                                        prefWidth="315.0"
+                                        prefHeight="150.0"
+                                        style="-fx-background: transparent; -fx-background-color: transparent; -fx-padding: 0;">
+                                <content>
+                                    <VBox fx:id="boxBotoesHabilidades"
+                                          spacing="6.0"
+                                          prefWidth="310.0" />
+                                </content>
+                            </ScrollPane>
+
+                            <Button fx:id="botaoVoltarAcoes"
+                                    text="Voltar"
+                                    onAction="#voltarMenuAcoes"
+                                    prefWidth="310.0"
+                                    prefHeight="34.0"
+                                    style="-fx-font-size: 14px; -fx-font-family: Georgia;" />
+                        </children>
+                    </VBox>
+                </children>
+            </VBox>
+
+            <TextArea fx:id="logCombate"
+                      editable="false"
+                      wrapText="true"
+                      prefWidth="570.0"
+                      prefHeight="205.0"
+                      style="-fx-control-inner-background: #120d14; -fx-text-fill: #f5e6d0; -fx-font-size: 14px; -fx-font-family: Georgia;" />
+
+            <VBox spacing="14.0" prefWidth="210.0">
+                <children>
+                    <Button fx:id="botaoFugir"
+                            text="Fugir"
+                            onAction="#fugir"
+                            prefWidth="190.0"
+                            prefHeight="46.0"
+                            style="-fx-font-size: 14px; -fx-font-family: Georgia;" />
+
+                    <Label text="Cada turno permite só uma ação. Habilidades, conversa, defesa, ataque físico e tiro encerram sua ação."
+                           wrapText="true"
+                           prefWidth="190.0"
+                           style="-fx-text-fill: #a8868a; -fx-font-size: 12px; -fx-font-family: Georgia;" />
+                </children>
+            </VBox>
+        </HBox>
+    </bottom>
+</BorderPane>

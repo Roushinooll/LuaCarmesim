@@ -2,10 +2,15 @@ package com.cls.projetoluacarmesim;
 
 import com.cls.projetoluacarmesim.enums.TipoItem;
 import com.cls.projetoluacarmesim.enums.TipoRua;
+import com.cls.projetoluacarmesim.enums.TipoInimigo;
 import com.cls.projetoluacarmesim.model.ItemEspecial;
+import com.cls.projetoluacarmesim.model.Inimigo;
+import com.cls.projetoluacarmesim.model.Bandido;
+import com.cls.projetoluacarmesim.model.Beyonder;
 import com.cls.projetoluacarmesim.util.GeradorRua;
 import com.cls.projetoluacarmesim.util.Input;
 import com.cls.projetoluacarmesim.util.Personagem;
+import com.cls.projetoluacarmesim.util.InimigoMapa;
 import com.cls.projetoluacarmesim.dao.RankingDAO;
 import com.cls.projetoluacarmesim.dao.ReceitaDAO;
 import com.cls.projetoluacarmesim.model.Jogador;
@@ -61,6 +66,9 @@ public class StreetsController {
     @FXML
     private Button botaoVoltarRestroom;
 
+    @FXML
+    private Button botaoInventarioMenu;
+
     private Personagem personagem;
     private Input input;
     private AnimationTimer loop;
@@ -70,15 +78,21 @@ public class StreetsController {
     private int numeroRua = 1;
     private TipoRua tipoRuaAtual;
 
-    private final List<Rectangle> inimigos = new ArrayList<>();
+    private final List<InimigoMapa> inimigos = new ArrayList<>();
     private final List<Rectangle> itens = new ArrayList<>();
     private final List<Rectangle> receitas = new ArrayList<>();
     private final Map<Rectangle, Integer> idsReceitas = new HashMap<>();
     private final List<String[]> ingredientesColetaveisDaRua = new ArrayList<>();
 
     private static final double DISTANCIA_MINIMA_INIMIGOS = 70;
+    private static final double RAIO_DETECCAO_INIMIGO = 230;
+    private static final double DISTANCIA_INICIAR_COMBATE = 55;
+    private static final double VELOCIDADE_BANDIDO = 85;
+    private static final double VELOCIDADE_BEYONDER = 105;
+
     private boolean coletandoItem = false;
     private boolean menuAberto = false;
+    private boolean combateAberto = false;
     private long versaoRua = 0;
 
     @FXML
@@ -127,15 +141,19 @@ public class StreetsController {
                 double delta = (now - lastTime) / 1_000_000_000.0;
                 lastTime = now;
 
-                if (!menuAberto) {
-                    personagem.update(delta, input);
-
-                    limitarMovimento();
-                    verificarColetaItem();
-                    verificarColetaReceita();
-                    verificarContatoInimigo();
-                    verificarFimDaRua();
+                if (menuAberto || combateAberto) {
+                    lastTime = now;
+                    return;
                 }
+
+                personagem.update(delta, input);
+
+                limitarMovimento();
+                atualizarInimigos(delta);
+                verificarColetaItem();
+                verificarColetaReceita();
+                verificarContatoInimigo();
+                verificarFimDaRua();
             }
         };
 
@@ -157,7 +175,14 @@ public class StreetsController {
             if (menuAberto) {
                 if (e.getCode() == KeyCode.ESCAPE) {
                     fecharMenuRua();
+                    e.consume();
+                    return;
                 }
+
+                if (e.getCode() == KeyCode.ENTER || e.getCode() == KeyCode.SPACE) {
+                    return;
+                }
+
                 e.consume();
                 return;
             }
@@ -182,7 +207,9 @@ public class StreetsController {
         textoInteracao.setText("Menu aberto.");
 
         Platform.runLater(() -> {
-            if (botaoVoltarRestroom != null) {
+            if (botaoInventarioMenu != null) {
+                botaoInventarioMenu.requestFocus();
+            } else if (botaoVoltarRestroom != null) {
                 botaoVoltarRestroom.requestFocus();
             } else if (menuRua != null) {
                 menuRua.requestFocus();
@@ -242,8 +269,12 @@ public class StreetsController {
         input.interact = false;
     }
 
+    @FXML
     private void abrirInventario() {
         try {
+            menuAberto = false;
+            limparInputMovimento();
+
             if (loop != null) {
                 loop.stop();
             }
@@ -260,17 +291,95 @@ public class StreetsController {
         }
     }
 
+    @FXML
+    private void abrirHabilidadesPeloMenu() {
+        try {
+            menuAberto = false;
+            limparInputMovimento();
+
+            if (loop != null) {
+                loop.stop();
+            }
+
+            EstadoJogo estado = EstadoJogo.getInstance();
+            estado.setTelaAnteriorHabilidades("streets");
+            salvarRuaAtualNoEstado();
+            novaVersaoRua();
+
+            App.setRoot("habilidades");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void abrirOpcoesPeloMenu() {
+        try {
+            menuAberto = false;
+            limparInputMovimento();
+
+            if (loop != null) {
+                loop.stop();
+            }
+
+            EstadoJogo estado = EstadoJogo.getInstance();
+            estado.setTelaAnteriorConfigs("streets");
+            salvarRuaAtualNoEstado();
+            novaVersaoRua();
+
+            App.setRoot("configs");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void sairDoJogoPeloMenu() {
+        menuAberto = false;
+        limparInputMovimento();
+
+        if (loop != null) {
+            loop.stop();
+        }
+
+        Platform.exit();
+    }
+
     private void salvarRuaAtualNoEstado() {
         EstadoJogo.getInstance().salvarEstadoRuaCompleto(
                 numeroRua,
                 tipoRuaAtual,
                 personagemView.getTranslateX(),
                 personagemView.getTranslateY(),
-                capturarPosicoes(inimigos),
+                capturarPosicoesInimigos(),
+                capturarTiposInimigos(),
                 capturarPosicoes(itens),
                 capturarPosicoes(receitas),
                 capturarIdsReceitas()
         );
+    }
+
+    private List<double[]> capturarPosicoesInimigos() {
+        List<double[]> posicoes = new ArrayList<>();
+
+        for (InimigoMapa inimigoMapa : inimigos) {
+            Rectangle inimigoView = inimigoMapa.getView();
+            posicoes.add(new double[]{inimigoView.getLayoutX(), inimigoView.getLayoutY()});
+        }
+
+        return posicoes;
+    }
+
+    private List<TipoInimigo> capturarTiposInimigos() {
+        List<TipoInimigo> tipos = new ArrayList<>();
+
+        for (InimigoMapa inimigoMapa : inimigos) {
+            tipos.add(inimigoMapa.getInimigo().getTipoInimigo());
+        }
+
+        return tipos;
     }
 
     private List<Integer> capturarIdsReceitas() {
@@ -347,13 +456,25 @@ public class StreetsController {
 
         desenharRua(tipoRuaAtual);
 
-        for (double[] posicao : estado.getPosicoesInimigosRua()) {
-            Rectangle inimigo = criarRetanguloInimigo();
-            inimigo.setLayoutX(posicao[0]);
-            inimigo.setLayoutY(posicao[1]);
+        List<double[]> posicoesInimigos = estado.getPosicoesInimigosRua();
+        List<TipoInimigo> tiposInimigos = estado.getTiposInimigosRua();
 
-            inimigos.add(inimigo);
-            camadaObjetos.getChildren().add(inimigo);
+        for (int i = 0; i < posicoesInimigos.size(); i++) {
+            double[] posicao = posicoesInimigos.get(i);
+            TipoInimigo tipo = TipoInimigo.BANDIDO;
+
+            if (i < tiposInimigos.size() && tiposInimigos.get(i) != null) {
+                tipo = tiposInimigos.get(i);
+            }
+
+            Inimigo inimigoModel = criarInimigoPorTipo(tipo);
+            Rectangle inimigoView = criarRetanguloInimigo(inimigoModel);
+            inimigoView.setLayoutX(posicao[0]);
+            inimigoView.setLayoutY(posicao[1]);
+
+            InimigoMapa inimigoMapa = new InimigoMapa(inimigoModel, inimigoView);
+            inimigos.add(inimigoMapa);
+            camadaObjetos.getChildren().add(inimigoView);
         }
 
         for (double[] posicao : estado.getPosicoesItensRua()) {
@@ -473,11 +594,17 @@ public class StreetsController {
         );
     }
 
-    private Rectangle criarRetanguloInimigo() {
-        Rectangle inimigo = new Rectangle(45, 65);
-        inimigo.setFill(Color.rgb(120, 20, 35));
+    private Rectangle criarRetanguloInimigo(Inimigo inimigoModel) {
+        Rectangle inimigo = new Rectangle(64, 64);
         inimigo.setArcWidth(10);
         inimigo.setArcHeight(10);
+
+        if (inimigoModel.getTipoInimigo() == TipoInimigo.BEYONDER) {
+            inimigo.setFill(Color.rgb(90, 40, 160));
+        } else {
+            inimigo.setFill(Color.rgb(120, 20, 35));
+        }
+
         return inimigo;
     }
 
@@ -503,17 +630,18 @@ public class StreetsController {
 
         for (int i = 0; i < quantidade; i++) {
 
-            Rectangle inimigo = criarRetanguloInimigo();
+            Inimigo inimigoModel = sortearInimigoPorProgresso();
+            Rectangle inimigoView = criarRetanguloInimigo(inimigoModel);
 
             boolean posicaoValida = false;
 
             for (int tentativa = 0; tentativa < 80; tentativa++) {
                 double[] posicao = sortearPosicaoValidaNaRua();
 
-                inimigo.setLayoutX(posicao[0]);
-                inimigo.setLayoutY(posicao[1]);
+                inimigoView.setLayoutX(posicao[0]);
+                inimigoView.setLayoutY(posicao[1]);
 
-                if (estaLongeDosOutrosInimigos(inimigo)) {
+                if (estaLongeDosOutrosInimigos(inimigoView)) {
                     posicaoValida = true;
                     break;
                 }
@@ -521,13 +649,195 @@ public class StreetsController {
 
             if (!posicaoValida) {
                 double[] posicao = sortearPosicaoValidaNaRua();
-                inimigo.setLayoutX(posicao[0]);
-                inimigo.setLayoutY(posicao[1]);
+                inimigoView.setLayoutX(posicao[0]);
+                inimigoView.setLayoutY(posicao[1]);
             }
 
-            inimigos.add(inimigo);
-            camadaObjetos.getChildren().add(inimigo);
+            InimigoMapa inimigoMapa = new InimigoMapa(inimigoModel, inimigoView);
+
+            inimigos.add(inimigoMapa);
+            camadaObjetos.getChildren().add(inimigoView);
         }
+    }
+
+    private Inimigo sortearInimigoPorProgresso() {
+        double chanceBeyonder = calcularChanceBeyonder();
+
+        if (Math.random() < chanceBeyonder) {
+            return criarBeyonderAleatorio();
+        }
+
+        return criarBandidoAleatorio();
+    }
+
+    private double calcularChanceBeyonder() {
+        if (numeroRua <= 2) {
+            return 0.05;
+        }
+
+        if (numeroRua <= 5) {
+            return 0.12;
+        }
+
+        if (numeroRua <= 8) {
+            return 0.25;
+        }
+
+        if (numeroRua <= 12) {
+            return 0.45;
+        }
+
+        if (numeroRua <= 16) {
+            return 0.65;
+        }
+
+        if (numeroRua <= 20) {
+            return 0.85;
+        }
+
+        return 1.0;
+    }
+
+    private Bandido criarBandidoAleatorio() {
+        Bandido.TipoArma[] armas = {
+                Bandido.TipoArma.FACA,
+                Bandido.TipoArma.PORRETE,
+                Bandido.TipoArma.REVOLVER,
+                Bandido.TipoArma.CORRENTE,
+                Bandido.TipoArma.DESARMADO
+        };
+
+        Bandido.TipoArma arma = armas[(int) (Math.random() * armas.length)];
+
+        return new Bandido(
+                0,
+                "Bandido das Vielas",
+                "Um criminoso comum tentando sobreviver nas ruas distorcidas.",
+                80 + numeroRua * 4,
+                8 + numeroRua,
+                arma == Bandido.TipoArma.DESARMADO ? 0 : 6 + numeroRua,
+                2 + numeroRua / 4,
+                2,
+                null,
+                "Sangue Coagulado",
+                5 + numeroRua,
+                35,
+                arma,
+                1 + numeroRua
+        );
+    }
+
+    private Beyonder criarBeyonderAleatorio() {
+        int sequencia = sortearSequenciaBeyonder();
+        String nomePocao = sortearPocaoBeyonder(sequencia);
+
+        Beyonder beyonder = new Beyonder(
+                0,
+                "Beyonder Hostil",
+                "Um usuário de poção enlouquecido pela influência da Lua Carmesim.",
+                110 + numeroRua * 6,
+                12 + numeroRua,
+                8 + numeroRua,
+                4 + numeroRua / 3,
+                3,
+                null,
+                "Sangue Negro",
+                12 + numeroRua * 2,
+                false,
+                85,
+                sequencia,
+                80 + numeroRua * 2,
+                10,
+                nomePocao,
+                false
+        );
+
+        beyonder.adicionarPoderMistico("Pressão Espiritual");
+
+        return beyonder;
+    }
+
+    private int sortearSequenciaBeyonder() {
+        if (numeroRua <= 6) {
+            return 9;
+        }
+
+        if (numeroRua <= 12) {
+            return Math.random() < 0.75 ? 9 : 8;
+        }
+
+        if (numeroRua <= 18) {
+            double sorteio = Math.random();
+
+            if (sorteio < 0.50) {
+                return 9;
+            }
+
+            if (sorteio < 0.85) {
+                return 8;
+            }
+
+            return 7;
+        }
+
+        double sorteio = Math.random();
+
+        if (sorteio < 0.40) {
+            return 8;
+        }
+
+        if (sorteio < 0.70) {
+            return 7;
+        }
+
+        if (sorteio < 0.90) {
+            return 6;
+        }
+
+        return 5;
+    }
+
+    private String sortearPocaoBeyonder(int sequencia) {
+        String[] sequencia9 = {"Vidente", "Criminoso", "Caçador", "Bardo"};
+        String[] sequencia8 = {"Palhaço", "Anjo Sem Asas", "Provocador", "Suplicante da Luz"};
+        String[] sequencia7 = {"Mágico", "Assassino em Série", "Piromaníaco", "Sumo Sacerdote do Sol"};
+        String[] sequencia6 = {"Sem Rosto", "Diabo", "Conspirador", "Notário"};
+        String[] sequencia5 = {"Marionetista", "Apóstolo do Desejo", "Ceifador", "Sacerdote da Luz"};
+
+        String[] opcoes;
+
+        switch (sequencia) {
+            case 8:
+                opcoes = sequencia8;
+                break;
+
+            case 7:
+                opcoes = sequencia7;
+                break;
+
+            case 6:
+                opcoes = sequencia6;
+                break;
+
+            case 5:
+                opcoes = sequencia5;
+                break;
+
+            case 9:
+            default:
+                opcoes = sequencia9;
+                break;
+        }
+
+        return opcoes[(int) (Math.random() * opcoes.length)];
+    }
+
+    private Inimigo criarInimigoPorTipo(TipoInimigo tipo) {
+        if (tipo == TipoInimigo.BEYONDER) {
+            return criarBeyonderAleatorio();
+        }
+
+        return criarBandidoAleatorio();
     }
 
     private void gerarItens() {
@@ -940,14 +1250,178 @@ public class StreetsController {
         });
     }
 
+    private void atualizarInimigos(double delta) {
+
+        for (InimigoMapa inimigoMapa : inimigos) {
+            Rectangle inimigoView = inimigoMapa.getView();
+            double distancia = calcularDistanciaDoPersonagem(inimigoView);
+
+            if (distancia <= RAIO_DETECCAO_INIMIGO) {
+                inimigoMapa.setPerseguindo(true);
+            }
+
+            if (!inimigoMapa.isPerseguindo()) {
+                continue;
+            }
+
+            moverInimigoEmDirecaoAoPersonagem(inimigoMapa, delta);
+            limitarInimigoNaRua(inimigoView);
+
+            if (distancia <= DISTANCIA_INICIAR_COMBATE) {
+                textoInteracao.setText(
+                        "Combate prestes a iniciar contra "
+                                + nomeTipoInimigo(inimigoMapa.getInimigo())
+                                + "."
+                );
+            }
+        }
+    }
+
+    private void moverInimigoEmDirecaoAoPersonagem(InimigoMapa inimigoMapa, double delta) {
+        Rectangle inimigoView = inimigoMapa.getView();
+
+        double centroInimigoX = inimigoView.getLayoutX() + inimigoView.getWidth() / 2;
+        double centroInimigoY = inimigoView.getLayoutY() + inimigoView.getHeight() / 2;
+
+        double centroPersonagemX = personagemView.getLayoutX()
+                + personagemView.getTranslateX()
+                + personagemView.getFitWidth() / 2;
+
+        double centroPersonagemY = personagemView.getLayoutY()
+                + personagemView.getTranslateY()
+                + personagemView.getFitHeight() / 2;
+
+        double diferencaX = centroPersonagemX - centroInimigoX;
+        double diferencaY = centroPersonagemY - centroInimigoY;
+        double distancia = Math.sqrt(diferencaX * diferencaX + diferencaY * diferencaY);
+
+        if (distancia <= 0) {
+            return;
+        }
+
+        double velocidade = getVelocidadeInimigo(inimigoMapa.getInimigo());
+        double movimento = velocidade * delta;
+
+        double direcaoX = diferencaX / distancia;
+        double direcaoY = diferencaY / distancia;
+
+        inimigoView.setLayoutX(inimigoView.getLayoutX() + direcaoX * movimento);
+        inimigoView.setLayoutY(inimigoView.getLayoutY() + direcaoY * movimento);
+    }
+
+    private double getVelocidadeInimigo(Inimigo inimigo) {
+        if (inimigo.getTipoInimigo() == TipoInimigo.BEYONDER) {
+            return VELOCIDADE_BEYONDER;
+        }
+
+        return VELOCIDADE_BANDIDO;
+    }
+
+    private double calcularDistanciaDoPersonagem(Rectangle inimigoView) {
+        double centroInimigoX = inimigoView.getLayoutX() + inimigoView.getWidth() / 2;
+        double centroInimigoY = inimigoView.getLayoutY() + inimigoView.getHeight() / 2;
+
+        double centroPersonagemX = personagemView.getLayoutX()
+                + personagemView.getTranslateX()
+                + personagemView.getFitWidth() / 2;
+
+        double centroPersonagemY = personagemView.getLayoutY()
+                + personagemView.getTranslateY()
+                + personagemView.getFitHeight() / 2;
+
+        double diferencaX = centroPersonagemX - centroInimigoX;
+        double diferencaY = centroPersonagemY - centroInimigoY;
+
+        return Math.sqrt(diferencaX * diferencaX + diferencaY * diferencaY);
+    }
+
     private void verificarContatoInimigo() {
 
-        for (Rectangle inimigo : inimigos) {
-            if (personagemView.getBoundsInParent().intersects(inimigo.getBoundsInParent())) {
-                textoInteracao.setText("Inimigo encontrado! Aqui depois entra o combate.");
+        if (combateAberto) {
+            return;
+        }
+
+        for (InimigoMapa inimigoMapa : inimigos) {
+            Rectangle inimigoView = inimigoMapa.getView();
+            double distancia = calcularDistanciaDoPersonagem(inimigoView);
+
+            if (distancia <= DISTANCIA_INICIAR_COMBATE
+                    || personagemView.getBoundsInParent().intersects(inimigoView.getBoundsInParent())) {
+                iniciarCombate(inimigoMapa);
                 return;
             }
         }
+    }
+
+    private void iniciarCombate(InimigoMapa inimigoMapa) {
+        combateAberto = true;
+        menuAberto = false;
+        limparInputMovimento();
+
+        textoInteracao.setText("Combate iniciado contra " + nomeTipoInimigo(inimigoMapa.getInimigo()) + ".");
+
+        try {
+            CombateController.abrirCombate(
+                    inimigoMapa.getInimigo(),
+                    () -> finalizarCombateComVitoria(inimigoMapa),
+                    () -> finalizarCombateComFuga(inimigoMapa)
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+
+            combateAberto = false;
+            textoInteracao.setText("Erro ao abrir a tela de combate.");
+        }
+    }
+
+    private void finalizarCombateComVitoria(InimigoMapa inimigoMapa) {
+        Rectangle inimigoView = inimigoMapa.getView();
+
+        inimigos.remove(inimigoMapa);
+        camadaObjetos.getChildren().remove(inimigoView);
+        salvarRuaAtualNoEstado();
+
+        combateAberto = false;
+        textoInteracao.setText("Você derrotou " + nomeTipoInimigo(inimigoMapa.getInimigo()) + ".");
+
+        Platform.runLater(() -> rootRua.getScene().getRoot().requestFocus());
+    }
+
+    private void finalizarCombateComFuga(InimigoMapa inimigoMapa) {
+        inimigoMapa.setPerseguindo(false);
+        afastarInimigoDepoisDaFuga(inimigoMapa.getView());
+        salvarRuaAtualNoEstado();
+
+        combateAberto = false;
+        textoInteracao.setText("Você saiu do combate.");
+
+        Platform.runLater(() -> rootRua.getScene().getRoot().requestFocus());
+    }
+
+    private void afastarInimigoDepoisDaFuga(Rectangle inimigoView) {
+        double xPersonagem = personagemView.getLayoutX() + personagemView.getTranslateX();
+        double yPersonagem = personagemView.getLayoutY() + personagemView.getTranslateY();
+
+        double novoX = inimigoView.getLayoutX() < xPersonagem
+                ? inimigoView.getLayoutX() - 120
+                : inimigoView.getLayoutX() + 120;
+
+        double novoY = inimigoView.getLayoutY() < yPersonagem
+                ? inimigoView.getLayoutY() - 40
+                : inimigoView.getLayoutY() + 40;
+
+        inimigoView.setLayoutX(novoX);
+        inimigoView.setLayoutY(novoY);
+
+        limitarInimigoNaRua(inimigoView);
+    }
+
+    private String nomeTipoInimigo(Inimigo inimigo) {
+        if (inimigo.getTipoInimigo() == TipoInimigo.BEYONDER) {
+            return "Beyonder";
+        }
+
+        return "Bandido";
     }
 
     private void verificarFimDaRua() {
@@ -1052,6 +1526,64 @@ public class StreetsController {
         }
     }
 
+    private void limitarInimigoNaRua(Rectangle inimigo) {
+        limitarInimigoX(inimigo, 0, 1180);
+
+        switch (tipoRuaAtual) {
+            case RUA_RETA:
+                limitarInimigoY(inimigo, 230, 440);
+                break;
+
+            case VIELA_ESTREITA:
+                limitarInimigoY(inimigo, 270, 390);
+                break;
+
+            case CRUZAMENTO:
+                limitarInimigoCruzamento(inimigo);
+                break;
+        }
+    }
+
+    private void limitarInimigoCruzamento(Rectangle inimigo) {
+        double x = inimigo.getLayoutX();
+        double y = inimigo.getLayoutY();
+
+        boolean dentroFaixaVertical = x >= 520 && x <= 720;
+        boolean dentroFaixaHorizontal = y >= 230 && y <= 430;
+
+        if (dentroFaixaVertical) {
+            limitarInimigoY(inimigo, 0, 580);
+        } else {
+            limitarInimigoY(inimigo, 230, 430);
+        }
+
+        y = inimigo.getLayoutY();
+
+        if (!dentroFaixaHorizontal) {
+            limitarInimigoX(inimigo, 520, 720);
+        }
+    }
+
+    private void limitarInimigoX(Rectangle inimigo, double minimo, double maximo) {
+        if (inimigo.getLayoutX() < minimo) {
+            inimigo.setLayoutX(minimo);
+        }
+
+        if (inimigo.getLayoutX() > maximo) {
+            inimigo.setLayoutX(maximo);
+        }
+    }
+
+    private void limitarInimigoY(Rectangle inimigo, double minimo, double maximo) {
+        if (inimigo.getLayoutY() < minimo) {
+            inimigo.setLayoutY(minimo);
+        }
+
+        if (inimigo.getLayoutY() > maximo) {
+            inimigo.setLayoutY(maximo);
+        }
+    }
+
     private String nomeBonitoRua(TipoRua tipoRua) {
 
         switch (tipoRua) {
@@ -1075,9 +1607,11 @@ public class StreetsController {
         double centroNovoX = novoInimigo.getLayoutX() + novoInimigo.getWidth() / 2;
         double centroNovoY = novoInimigo.getLayoutY() + novoInimigo.getHeight() / 2;
 
-        for (Rectangle inimigoExistente : inimigos) {
-            double centroExistenteX = inimigoExistente.getLayoutX() + inimigoExistente.getWidth() / 2;
-            double centroExistenteY = inimigoExistente.getLayoutY() + inimigoExistente.getHeight() / 2;
+        for (InimigoMapa inimigoExistente : inimigos) {
+            Rectangle inimigoView = inimigoExistente.getView();
+
+            double centroExistenteX = inimigoView.getLayoutX() + inimigoView.getWidth() / 2;
+            double centroExistenteY = inimigoView.getLayoutY() + inimigoView.getHeight() / 2;
 
             double diferencaX = centroNovoX - centroExistenteX;
             double diferencaY = centroNovoY - centroExistenteY;

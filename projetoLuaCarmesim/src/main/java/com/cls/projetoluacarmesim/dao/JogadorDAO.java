@@ -129,6 +129,24 @@ public class JogadorDAO {
         }
     }
 
+    public void atualizarProgressaoPocao(int idJogador, int sequenciaAtual, String caminhoAtual) throws SQLException {
+        String sql = "UPDATE jogador SET sequencia_atual = ?, caminho_atual = ? WHERE id_jogador = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = ConexaoBanco.getConexao();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, sequenciaAtual);
+            ps.setString(2, caminhoAtual);
+            ps.setInt(3, idJogador);
+            ps.executeUpdate();
+        } finally {
+            ConexaoBanco.fechar(ps, conn);
+        }
+    }
+
     public void deletar(int idJogador) throws SQLException {
         String sql = "DELETE FROM jogador WHERE id_jogador = ?";
 
@@ -146,13 +164,32 @@ public class JogadorDAO {
     }
 
     private Jogador mapear(ResultSet rs) throws SQLException {
-        return new Jogador(
-            rs.getInt("id_jogador"),
-            rs.getString("nome"),
-            rs.getInt("sequencia_atual"),
-            rs.getInt("sanidade_maxima"),
-            rs.getInt("sanidade_atual"),
-            rs.getTimestamp("criado_em").toLocalDateTime()
+        Jogador jogador = new Jogador(
+                rs.getInt("id_jogador"),
+                rs.getString("nome"),
+                rs.getInt("sequencia_atual"),
+                rs.getInt("sanidade_maxima"),
+                rs.getInt("sanidade_atual"),
+                rs.getTimestamp("criado_em").toLocalDateTime()
         );
+
+        if (existeColuna(rs, "caminho_atual")) {
+            jogador.setCaminhoAtual(rs.getString("caminho_atual"));
+        }
+
+        return jogador;
+    }
+
+    private boolean existeColuna(ResultSet rs, String nomeColuna) throws SQLException {
+        ResultSetMetaData metaData = rs.getMetaData();
+        int quantidadeColunas = metaData.getColumnCount();
+
+        for (int i = 1; i <= quantidadeColunas; i++) {
+            if (metaData.getColumnName(i).equalsIgnoreCase(nomeColuna)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

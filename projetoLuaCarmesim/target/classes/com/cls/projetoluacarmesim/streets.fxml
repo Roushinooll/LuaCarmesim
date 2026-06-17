@@ -44,9 +44,9 @@
         <!-- Menu aberto com TAB durante a rua -->
         <Pane fx:id="menuRua"
               layoutX="390.0"
-              layoutY="185.0"
+              layoutY="115.0"
               prefWidth="500.0"
-              prefHeight="320.0"
+              prefHeight="500.0"
               visible="false"
               focusTraversable="true"
               style="
@@ -58,38 +58,71 @@
               ">
             <children>
                 <Label layoutX="0.0"
-                       layoutY="35.0"
+                       layoutY="30.0"
                        prefWidth="500.0"
                        alignment="CENTER"
                        text="Menu"
                        style="-fx-text-fill: #f5e6d0; -fx-font-size: 34px; -fx-font-family: Georgia; -fx-font-weight: bold;" />
 
                 <Label layoutX="45.0"
-                       layoutY="94.0"
+                       layoutY="83.0"
                        prefWidth="410.0"
-                       text="Por enquanto só tem retorno seguro para a Restroom."
+                       text="TAB abre e fecha este menu. Escolha uma opção para pausar a exploração."
                        wrapText="true"
-                       style="-fx-text-fill: #c9b7a0; -fx-font-size: 18px; -fx-font-family: Georgia;" />
+                       style="-fx-text-fill: #c9b7a0; -fx-font-size: 17px; -fx-font-family: Georgia;" />
+
+                <Button fx:id="botaoInventarioMenu"
+                        layoutX="120.0"
+                        layoutY="142.0"
+                        prefWidth="260.0"
+                        prefHeight="43.0"
+                        text="Inventário"
+                        onAction="#abrirInventario"
+                        style="-fx-font-size: 17px; -fx-font-family: Georgia;" />
+
+                <Button layoutX="120.0"
+                        layoutY="197.0"
+                        prefWidth="260.0"
+                        prefHeight="43.0"
+                        text="Habilidades"
+                        onAction="#abrirHabilidadesPeloMenu"
+                        style="-fx-font-size: 17px; -fx-font-family: Georgia;" />
 
                 <Button fx:id="botaoVoltarRestroom"
                         layoutX="120.0"
-                        layoutY="170.0"
+                        layoutY="252.0"
                         prefWidth="260.0"
-                        prefHeight="45.0"
-                        text="Voltar para Restroom"
+                        prefHeight="43.0"
+                        text="Voltar Para o quarto"
                         onAction="#voltarParaRestroomPeloMenu"
                         style="-fx-font-size: 17px; -fx-font-family: Georgia;" />
 
+                <Button layoutX="120.0"
+                        layoutY="307.0"
+                        prefWidth="260.0"
+                        prefHeight="43.0"
+                        text="Opções"
+                        onAction="#abrirOpcoesPeloMenu"
+                        style="-fx-font-size: 17px; -fx-font-family: Georgia;" />
+
+                <Button layoutX="120.0"
+                        layoutY="362.0"
+                        prefWidth="260.0"
+                        prefHeight="43.0"
+                        text="Sair"
+                        onAction="#sairDoJogoPeloMenu"
+                        style="-fx-font-size: 17px; -fx-font-family: Georgia;" />
+
                 <Button layoutX="165.0"
-                        layoutY="232.0"
+                        layoutY="424.0"
                         prefWidth="170.0"
-                        prefHeight="36.0"
+                        prefHeight="34.0"
                         text="Fechar"
                         onAction="#fecharMenuRua"
                         style="-fx-font-size: 15px; -fx-font-family: Georgia;" />
 
                 <Label layoutX="0.0"
-                       layoutY="286.0"
+                       layoutY="468.0"
                        prefWidth="500.0"
                        alignment="CENTER"
                        text="TAB ou ESC fecha"

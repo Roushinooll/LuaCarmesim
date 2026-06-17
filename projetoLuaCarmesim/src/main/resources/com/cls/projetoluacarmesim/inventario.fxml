@@ -30,7 +30,7 @@
                         <ListView fx:id="listaItens"
                                   prefWidth="550.0"
                                   prefHeight="520.0"
-                                  focusTraversable="false" />
+                                  focusTraversable="true" />
                     </children>
                 </VBox>
 
@@ -49,7 +49,7 @@
             </children>
         </HBox>
 
-        <Label text="I - Voltar"
+        <Label text="I - Voltar     ENTER - Tomar poção selecionada"
                style="-fx-text-fill: #f5e6d0; -fx-font-size: 18px;" />
 
     </children>

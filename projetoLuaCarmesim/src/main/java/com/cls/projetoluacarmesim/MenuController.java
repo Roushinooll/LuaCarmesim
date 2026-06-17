@@ -80,6 +80,7 @@ public class MenuController {
     
     @FXML
     private void opcoes() throws IOException {
+        EstadoJogo.getInstance().setTelaAnteriorConfigs("menu");
         App.setRoot("configs");
     }
     

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane fx:id="rootHabilidades"
+            prefWidth="1280.0"
+            prefHeight="720.0"
+            focusTraversable="true"
+            style="-fx-background-color: linear-gradient(to bottom, #08050a, #171018);"
+            xmlns="http://javafx.com/javafx/13"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.cls.projetoluacarmesim.HabilidadesController">
+
+    <top>
+        <VBox spacing="8.0"
+              style="-fx-background-color: rgba(0,0,0,0.55); -fx-border-color: #8b1e2d; -fx-border-width: 0 0 3 0;">
+            <padding>
+                <Insets top="24.0" right="40.0" bottom="20.0" left="40.0" />
+            </padding>
+
+            <Label fx:id="labelTitulo"
+                   text="Habilidades de Caminho"
+                   style="-fx-text-fill: #f5e6d0; -fx-font-size: 36px; -fx-font-family: Georgia; -fx-font-weight: bold;" />
+
+            <Label fx:id="labelResumo"
+                   text="Sequência atual"
+                   style="-fx-text-fill: #c9b7a0; -fx-font-size: 18px; -fx-font-family: Georgia;" />
+        </VBox>
+    </top>
+
+    <center>
+        <HBox spacing="26.0">
+            <padding>
+                <Insets top="34.0" right="50.0" bottom="34.0" left="50.0" />
+            </padding>
+
+            <VBox spacing="12.0" prefWidth="500.0">
+                <children>
+                    <Label text="Habilidades desbloqueadas"
+                           style="-fx-text-fill: #f0d08b; -fx-font-size: 22px; -fx-font-family: Georgia; -fx-font-weight: bold;" />
+
+                    <ListView fx:id="listaHabilidades"
+                              prefWidth="500.0"
+                              prefHeight="450.0"
+                              style="-fx-control-inner-background: #120d14; -fx-font-size: 16px; -fx-font-family: Georgia;" />
+                </children>
+            </VBox>
+
+            <VBox spacing="12.0" prefWidth="600.0">
+                <children>
+                    <Label text="Descrição"
+                           style="-fx-text-fill: #f0d08b; -fx-font-size: 22px; -fx-font-family: Georgia; -fx-font-weight: bold;" />
+
+                    <Label fx:id="textoDescricao"
+                           prefWidth="600.0"
+                           prefHeight="450.0"
+                           wrapText="true"
+                           text="Escolha uma habilidade."
+                           style="-fx-background-color: rgba(18, 13, 20, 0.95); -fx-border-color: #6f1d2d; -fx-border-width: 3px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 24px; -fx-text-fill: #f5e6d0; -fx-font-size: 18px; -fx-font-family: Georgia;" />
+                </children>
+            </VBox>
+        </HBox>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" spacing="18.0"
+              style="-fx-background-color: rgba(0,0,0,0.55); -fx-border-color: #8b1e2d; -fx-border-width: 3 0 0 0;">
+            <padding>
+                <Insets top="18.0" right="40.0" bottom="18.0" left="40.0" />
+            </padding>
+
+            <Label text="ESC ou TAB volta para o jogo"
+                   style="-fx-text-fill: #a8868a; -fx-font-size: 15px; -fx-font-family: Georgia;" />
+
+            <Button fx:id="botaoVoltar"
+                    text="Voltar"
+                    onAction="#voltarParaTelaAnterior"
+                    prefWidth="180.0"
+                    prefHeight="42.0"
+                    style="-fx-font-size: 16px; -fx-font-family: Georgia;" />
+        </HBox>
+    </bottom>
+</BorderPane>

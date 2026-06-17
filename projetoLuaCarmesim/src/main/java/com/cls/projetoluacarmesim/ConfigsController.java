@@ -7,6 +7,10 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Button;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -15,10 +19,12 @@ import java.util.ResourceBundle;
 
 public class ConfigsController implements Initializable {
 
+    @FXML private StackPane rootConfigs;
     @FXML private Slider sliderMusica;
     @FXML private Slider sliderSom;
     @FXML private CheckBox checkTelaCheia;
     @FXML private ComboBox<String> comboResolucao;
+    @FXML private Button btnVoltar;
 
     private final GerenciadorConfigs configs = GerenciadorConfigs.getInstance();
     private final GerenciadorAudio   audio   = GerenciadorAudio.getInstance();
@@ -41,6 +47,25 @@ public class ConfigsController implements Initializable {
         sliderSom.setValue(configs.getSom());
         checkTelaCheia.setSelected(configs.isTelaCheia());
         comboResolucao.setValue(configs.getResolucao());
+
+        if (btnVoltar != null) {
+            String origem = EstadoJogo.getInstance().getTelaAnteriorConfigs();
+            btnVoltar.setText("menu".equals(origem) ? "Voltar Para o Menu" : "Voltar Para o Jogo");
+        }
+
+        if (rootConfigs != null) {
+            rootConfigs.setFocusTraversable(true);
+            rootConfigs.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+                if (e.getCode() == KeyCode.ESCAPE || e.getCode() == KeyCode.TAB) {
+                    try {
+                        voltarParaOrigem();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    e.consume();
+                }
+            });
+        }
 
         // Atualiza o volume em tempo real enquanto o usuário arrasta
         sliderMusica.valueProperty().addListener((obs, antigo, novo) ->
@@ -105,7 +130,25 @@ public class ConfigsController implements Initializable {
 
     @FXML
     private void voltarParaMenu() throws IOException {
-        App.setRoot("menu");
+        voltarParaOrigem();
+    }
+
+    private void voltarParaOrigem() throws IOException {
+        String telaAnterior = EstadoJogo.getInstance().getTelaAnteriorConfigs();
+
+        if (telaAnterior == null || telaAnterior.isBlank()) {
+            telaAnterior = "menu";
+        }
+
+        Object controller = App.setRoot(telaAnterior);
+
+        if (controller instanceof RestroomController) {
+            ((RestroomController) controller).startGame(App.getStage().getScene());
+        }
+
+        if (controller instanceof StreetsController) {
+            ((StreetsController) controller).startGame(App.getStage().getScene());
+        }
     }
 
     // -------------------------------------------------------

@@ -1,16 +1,21 @@
 package com.cls.projetoluacarmesim;
 
 import com.cls.projetoluacarmesim.dao.ReceitaDAO;
+import com.cls.projetoluacarmesim.util.PocaoService;
+import com.cls.projetoluacarmesim.model.ItemEspecial;
+import com.cls.projetoluacarmesim.enums.TipoItem;
 import com.cls.projetoluacarmesim.model.Jogador;
 import com.cls.projetoluacarmesim.model.JogadorFormula;
 import com.cls.projetoluacarmesim.model.IngredienteFormula;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ListView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -27,6 +32,8 @@ public class InventarioController {
     @FXML
     private ListView<String> listaReceitas;
 
+    private final PocaoService pocaoService = new PocaoService();
+
     @FXML
     public void initialize() {
         carregarItens();
@@ -38,13 +45,19 @@ public class InventarioController {
             if (e.getCode() == KeyCode.I) {
                 voltarParaTelaAnterior();
                 e.consume();
+                return;
+            }
+
+            if (e.getCode() == KeyCode.ENTER) {
+                beberPocaoSelecionada();
+                e.consume();
             }
         });
 
         Platform.runLater(() -> {
             rootInventario.requestFocus();
             if (listaItens != null) {
-                listaItens.setFocusTraversable(false);
+                listaItens.setFocusTraversable(true);
             }
             if (listaReceitas != null) {
                 listaReceitas.setFocusTraversable(false);
@@ -122,6 +135,89 @@ public class InventarioController {
                 }
             }
         }
+    }
+
+    private void beberPocaoSelecionada() {
+        String linhaSelecionada = listaItens.getSelectionModel().getSelectedItem();
+
+        if (linhaSelecionada == null || linhaSelecionada.isBlank()) {
+            mostrarAviso("Poção", "Selecione uma poção na lista de itens.");
+            return;
+        }
+
+        String nomeItem = extrairNomeItemDaLinha(linhaSelecionada);
+
+        if (nomeItem == null || !nomeItem.startsWith("Poção de ")) {
+            mostrarAviso("Poção", "O item selecionado não é uma poção.");
+            return;
+        }
+
+        ItemEspecial pocao = EstadoJogo.getInstance()
+                .getInventario()
+                .buscarPrimeiroItem(nomeItem, TipoItem.POCAO);
+
+        if (pocao == null) {
+            mostrarAviso("Poção", "Essa poção não foi encontrada no inventário.");
+            return;
+        }
+
+        Jogador jogador = EstadoJogo.getInstance().getJogadorAtual();
+
+        try {
+            PocaoService.ResultadoPocao resultado = pocaoService.tentarBeberPocao(
+                    jogador,
+                    pocao,
+                    EstadoJogo.getInstance().getInventario()
+            );
+
+            if (resultado.isSucesso()) {
+                carregarItens();
+                carregarReceitas();
+            }
+
+            mostrarAviso("Poção", resultado.getMensagem());
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            mostrarAviso(
+                    "Erro no banco",
+                    "Não foi possível beber a poção.\n\n" + e.getMessage()
+            );
+        }
+    }
+
+    private String extrairNomeItemDaLinha(String linha) {
+        if (linha == null) {
+            return null;
+        }
+
+        String texto = linha.trim();
+
+        if (texto.equalsIgnoreCase("Nenhum item obtido.")) {
+            return null;
+        }
+
+        int indiceTipo = texto.indexOf(" - ");
+
+        if (indiceTipo >= 0) {
+            return texto.substring(0, indiceTipo).trim();
+        }
+
+        int indiceQuantidade = texto.lastIndexOf(" x");
+
+        if (indiceQuantidade >= 0) {
+            return texto.substring(0, indiceQuantidade).trim();
+        }
+
+        return texto;
+    }
+
+    private void mostrarAviso(String titulo, String mensagem) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(titulo);
+        alert.setHeaderText(null);
+        alert.setContentText(mensagem);
+        alert.showAndWait();
     }
 
     private void voltarParaTelaAnterior() {

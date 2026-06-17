@@ -93,6 +93,22 @@ public class ItemDAO {
         }
     }
 
+    public void removerItensDaRun(int idJogador) throws SQLException {
+        String sql = "DELETE FROM item_especial WHERE id_jogador = ? AND permanente = false";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = ConexaoBanco.getConexao();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, idJogador);
+            ps.executeUpdate();
+        } finally {
+            ConexaoBanco.fechar(ps, conn);
+        }
+    }
+
     private ItemEspecial mapear(ResultSet rs) throws SQLException {
         String tipoStr = rs.getString("tipo_item").toUpperCase();
         TipoItem tipo = TipoItem.valueOf(tipoStr);

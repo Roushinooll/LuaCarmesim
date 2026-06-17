@@ -7,6 +7,7 @@ public class Jogador {
     private int idJogador;
     private String nome;
     private int sequenciaAtual;
+    private String caminhoAtual;
     private int sanidadeMaxima;
     private int sanidadeAtual;
     private LocalDateTime criadoEm;
@@ -46,6 +47,9 @@ public class Jogador {
         this.sequenciaAtual = sequenciaAtual;
     }
 
+    public String getCaminhoAtual() { return caminhoAtual; }
+    public void setCaminhoAtual(String caminhoAtual) { this.caminhoAtual = caminhoAtual; }
+
     public int getSanidadeMaxima() { return sanidadeMaxima; }
     public void setSanidadeMaxima(int sanidadeMaxima) { this.sanidadeMaxima = sanidadeMaxima; }
 
@@ -61,7 +65,11 @@ public class Jogador {
 
     @Override
     public String toString() {
-        return "Jogador{id=" + idJogador + ", nome='" + nome + "', sequencia=" + sequenciaAtual
-                + ", sanidade=" + sanidadeAtual + "/" + sanidadeMaxima + "}";
+        return "Jogador{id=" + idJogador
+                + ", nome='" + nome + "'"
+                + ", sequencia=" + sequenciaAtual
+                + ", caminho='" + caminhoAtual + "'"
+                + ", sanidade=" + sanidadeAtual + "/" + sanidadeMaxima
+                + "}";
     }
 }

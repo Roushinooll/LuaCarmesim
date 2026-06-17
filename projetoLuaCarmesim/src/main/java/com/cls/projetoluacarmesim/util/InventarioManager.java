@@ -152,6 +152,33 @@ public class InventarioManager {
         return pocao;
     }
 
+    public ItemEspecial buscarPrimeiroItem(String nomeItem, TipoItem tipoItem) {
+        for (ItemEspecial item : itens) {
+            if (item.getNomeItem().equalsIgnoreCase(nomeItem)
+                    && item.getTipoItem() == tipoItem) {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
+    public boolean removerPrimeiroItem(String nomeItem, TipoItem tipoItem) {
+        Iterator<ItemEspecial> iterator = itens.iterator();
+
+        while (iterator.hasNext()) {
+            ItemEspecial item = iterator.next();
+
+            if (item.getNomeItem().equalsIgnoreCase(nomeItem)
+                    && item.getTipoItem() == tipoItem) {
+                iterator.remove();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void limparItensDaRun() {
         itens.clear();
     }
