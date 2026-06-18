@@ -5,6 +5,7 @@ import com.cls.projetoluacarmesim.combate.ExecutorHabilidades;
 import com.cls.projetoluacarmesim.combate.HabilidadeCatalogo;
 import com.cls.projetoluacarmesim.combate.HabilidadeCombate;
 import com.cls.projetoluacarmesim.combate.ResultadoHabilidade;
+import com.cls.projetoluacarmesim.model.Bandido;
 import com.cls.projetoluacarmesim.model.Beyonder;
 import com.cls.projetoluacarmesim.model.Boss;
 import com.cls.projetoluacarmesim.model.Inimigo;
@@ -18,7 +19,10 @@ import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 
 public class CombateController {
@@ -37,6 +41,13 @@ public class CombateController {
     @FXML private Label labelAcoes;
     @FXML private Label labelMunicao;
     @FXML private TextArea logCombate;
+    @FXML private ImageView imagemFundoBatalha;
+    @FXML private ImageView spriteJogadorBatalha;
+    @FXML private ImageView spriteInimigoBatalha;
+    @FXML private ProgressBar barraVidaJogador;
+    @FXML private ProgressBar barraVidaInimigo;
+    @FXML private ProgressBar barraSanidadeJogador;
+    @FXML private ProgressBar barraSanidadeInimigo;
 
     @FXML private VBox menuAcoesPrincipais;
     @FXML private VBox menuHabilidadesCombate;
@@ -101,6 +112,7 @@ public class CombateController {
         carregarHabilidadesInimigo();
 
         labelTitulo.setText("Combate contra " + nomeInimigo());
+        configurarVisualBatalha();
 
         adicionarLog("Um " + nomeInimigo() + " bloqueia seu caminho.");
         adicionarLog("Sistema atual: uma ação por turno, no estilo RPG de turno.");
@@ -183,6 +195,113 @@ public class CombateController {
                 inimigo.getDanoCorpoACorpo() + inimigo.getDanoArma(),
                 inimigo.getDefesa()
         );
+    }
+
+
+    private void configurarVisualBatalha() {
+        if (imagemFundoBatalha != null) {
+            imagemFundoBatalha.setImage(carregarImagem(
+                    "/image/battle_sprites/background.jpg",
+                    "/image/battle_sprites/background.png",
+                    "/image/Battle Sprite/background.jpg",
+                    "/image/Battle Sprite/background.png"
+            ));
+        }
+
+        if (spriteJogadorBatalha != null) {
+            spriteJogadorBatalha.setImage(carregarImagem(
+                    "/image/battle_sprites/chars/klein_pose.png",
+                    "/image/Battle Sprite/chars/klein_pose.png",
+                    "/image/Battle Sprite/Klein.png",
+                    "/image/battle_sprites/Klein.png",
+                    "/image/sprites/KleinGeral/rotations/south.png",
+                    "/image/sprites/KleinGeral/rotations/Lados.png"
+            ));
+            spriteJogadorBatalha.setFitWidth(235.0);
+            spriteJogadorBatalha.setFitHeight(235.0);
+            spriteJogadorBatalha.setLayoutX(220.0);
+            spriteJogadorBatalha.setLayoutY(158.0);
+            spriteJogadorBatalha.setScaleX(1);
+            spriteJogadorBatalha.setSmooth(false);
+        }
+
+        if (spriteInimigoBatalha != null) {
+            spriteInimigoBatalha.setImage(carregarImagem(caminhosSpriteInimigo()));
+            spriteInimigoBatalha.setSmooth(false);
+
+            if (inimigo instanceof Boss) {
+                spriteInimigoBatalha.setScaleX(1);
+                spriteInimigoBatalha.setFitWidth(300.0);
+                spriteInimigoBatalha.setFitHeight(300.0);
+                spriteInimigoBatalha.setLayoutX(875.0);
+                spriteInimigoBatalha.setLayoutY(46.0);
+            } else {
+                spriteInimigoBatalha.setScaleX(-1);
+                spriteInimigoBatalha.setFitWidth(176.0);
+                spriteInimigoBatalha.setFitHeight(176.0);
+                spriteInimigoBatalha.setLayoutX(962.0);
+                spriteInimigoBatalha.setLayoutY(126.0);
+            }
+        }
+    }
+
+    private Image carregarImagem(String... caminhos) {
+        if (caminhos == null) {
+            return null;
+        }
+
+        for (String caminho : caminhos) {
+            if (caminho == null || caminho.isBlank()) {
+                continue;
+            }
+
+            try {
+                var stream = getClass().getResourceAsStream(caminho);
+                if (stream != null) {
+                    return new Image(stream);
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        return null;
+    }
+
+    private String[] caminhosSpriteInimigo() {
+        if (inimigo instanceof Boss) {
+            return new String[] {
+                    "/image/battle_sprites/chars/boss_pose.png",
+                    "/image/Battle Sprite/chars/boss_pose.png",
+                    "/image/Battle Sprite/Boss.png",
+                    "/image/battle_sprites/Boss.png",
+                    "/image/sprites/BossGeral/idle_sprite.png",
+                    "/image/sprites/Beyonder2Geral/rotations/Lados.png",
+                    "/image/sprites/Beyonder1Geral/rotations/Lados.png",
+                    "/image/sprites/Bandido1Geral/rotations/Lados.png"
+            };
+        }
+
+        if (inimigo instanceof Beyonder) {
+            return new String[] {
+                    "/image/sprites/Beyonder1Geral/rotations/Lados.png",
+                    "/image/sprites/Beyonder2Geral/rotations/Lados.png",
+                    "/image/sprites/Bandido1Geral/rotations/Lados.png"
+            };
+        }
+
+        if (inimigo instanceof Bandido) {
+            return new String[] {
+                    "/image/sprites/Bandido1Geral/rotations/Lados.png",
+                    "/image/sprites/Bandido2Geral/rotations/lados.png",
+                    "/image/sprites/Bandido2Geral/rotations/Lados.png",
+                    "/image/sprites/Beyonder1Geral/rotations/Lados.png"
+            };
+        }
+
+        return new String[] {
+                "/image/sprites/Bandido1Geral/rotations/Lados.png",
+                "/image/sprites/Beyonder1Geral/rotations/Lados.png"
+        };
     }
 
     private void carregarHabilidadesJogador() {
@@ -737,6 +856,10 @@ public class CombateController {
             textoJogador += "\nMáculas: " + jogadorCombate.textoStatus();
         }
         labelJogador.setText(textoJogador);
+        atualizarBarra(barraVidaJogador, vidaJogador, vidaMaximaJogador);
+        if (jogadorCombate != null) {
+            atualizarBarra(barraSanidadeJogador, jogadorCombate.getSanidadeAtual(), jogadorCombate.getSanidadeMaxima());
+        }
 
         String textoInimigo = nomeInimigo() + " | Vida: " + inimigo.getVidaAtual() + "/" + inimigo.getVidaMaxima();
         if (inimigoCombate != null && inimigo instanceof Beyonder) {
@@ -748,6 +871,10 @@ public class CombateController {
             textoInimigo += "\nMáculas: " + inimigoCombate.textoStatus();
         }
         labelInimigo.setText(textoInimigo);
+        atualizarBarra(barraVidaInimigo, inimigo.getVidaAtual(), inimigo.getVidaMaxima());
+        if (inimigoCombate != null) {
+            atualizarBarra(barraSanidadeInimigo, inimigoCombate.getSanidadeAtual(), inimigoCombate.getSanidadeMaxima());
+        }
 
         labelAcoes.setText(acaoDisponivel ? "Ação disponível" : "Ação usada");
 
@@ -779,6 +906,21 @@ public class CombateController {
         }
         atualizarEstadoBotoesHabilidades(podeUsarHabilidade && menuHabilidadesEstaAberto());
         botaoFugir.setDisable(combateFinalizado);
+    }
+
+
+    private void atualizarBarra(ProgressBar barra, int atual, int maximo) {
+        if (barra == null) {
+            return;
+        }
+
+        if (maximo <= 0) {
+            barra.setProgress(0.0);
+            return;
+        }
+
+        double progresso = Math.max(0.0, Math.min(1.0, atual / (double) maximo));
+        barra.setProgress(progresso);
     }
 
     private void atualizarEstadoBotoesHabilidades(boolean habilitar) {

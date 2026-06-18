@@ -33,6 +33,7 @@ com\cls\projetoluacarmesim\util\InventarioManager.class
 com\cls\projetoluacarmesim\RestroomController.class
 com\cls\projetoluacarmesim\model\ProgressoNarrativo.class
 com\cls\projetoluacarmesim\MercadoController.class
+com\cls\projetoluacarmesim\IntroController.class
 com\cls\projetoluacarmesim\StreetsController$2.class
 com\cls\projetoluacarmesim\util\Personagem$Direcao.class
 com\cls\projetoluacarmesim\model\JogadorFormula.class

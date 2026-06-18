@@ -9,7 +9,7 @@ import javafx.scene.image.ImageView;
 public final class SpriteInimigoFactory {
 
     public static final double TAMANHO_INIMIGO = 96;
-    public static final double TAMANHO_BOSS = 128;
+    public static final double TAMANHO_BOSS = 96;
 
     private static final Random RANDOM = new Random();
     private static final String PROP_BASE = "spriteBaseInimigo";
@@ -114,6 +114,17 @@ public final class SpriteInimigoFactory {
     }
 
     private static void aplicarImagemDaDirecao(ImageView view, String base, String direcao) {
+        if ("BossGeral".equals(base)) {
+            Image imagemBoss = SpriteCache.carregar("/image/sprites/BossGeral/idle_sprite.png");
+            if (imagemBoss != null) {
+                view.setImage(imagemBoss);
+                view.setViewport(null);
+                view.setSmooth(false);
+                view.setScaleX(1);
+            }
+            return;
+        }
+
         String caminho;
 
         switch (direcao) {
@@ -183,7 +194,7 @@ public final class SpriteInimigoFactory {
         }
 
         if (inimigo.getTipoInimigo() == TipoInimigo.BOSS) {
-            return "Beyonder2Geral";
+            return "BossGeral";
         }
 
         if (inimigo.getTipoInimigo() == TipoInimigo.BEYONDER) {

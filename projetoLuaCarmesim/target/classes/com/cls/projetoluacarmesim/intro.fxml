@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.shape.Rectangle?>
+
+<Pane fx:id="rootIntro"
+      prefWidth="1280.0"
+      prefHeight="720.0"
+      focusTraversable="true"
+      style="-fx-background-color: black;"
+      xmlns="http://javafx.com/javafx/8.0.171"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.cls.projetoluacarmesim.IntroController">
+
+    <children>
+        <Rectangle layoutX="0.0"
+                   layoutY="0.0"
+                   width="1280.0"
+                   height="720.0"
+                   style="-fx-fill: #000000;" />
+
+        <Label layoutX="40.0"
+               layoutY="42.0"
+               text="Lua Carmesim"
+               style="-fx-text-fill: #8b1e2d; -fx-font-size: 34px; -fx-font-family: Georgia; -fx-font-weight: bold;" />
+
+        <Pane layoutX="190.0"
+              layoutY="470.0"
+              prefWidth="900.0"
+              prefHeight="170.0"
+              style="
+                  -fx-background-color: rgba(10, 5, 8, 0.94);
+                  -fx-border-color: #8b1e2d;
+                  -fx-border-width: 3px;
+                  -fx-border-radius: 8px;
+                  -fx-background-radius: 8px;
+              ">
+            <children>
+                <Label fx:id="textoDialogo"
+                       layoutX="38.0"
+                       layoutY="28.0"
+                       prefWidth="825.0"
+                       prefHeight="76.0"
+                       wrapText="true"
+                       text=""
+                       style="
+                           -fx-text-fill: #f5e6d0;
+                           -fx-font-size: 27px;
+                           -fx-font-family: Georgia;
+                       " />
+
+                <Label fx:id="textoInstrucao"
+                       layoutX="38.0"
+                       layoutY="118.0"
+                       text="ENTER / ESPAÇO / CLIQUE - Continuar"
+                       style="
+                           -fx-text-fill: #c96b6b;
+                           -fx-font-size: 18px;
+                           -fx-font-family: Georgia;
+                       " />
+            </children>
+        </Pane>
+    </children>
+</Pane>

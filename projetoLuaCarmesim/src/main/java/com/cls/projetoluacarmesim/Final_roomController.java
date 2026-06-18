@@ -34,8 +34,8 @@ public class Final_roomController {
     private static final double DISTANCIA_INICIAR_COMBATE = 52;
     private static final double HITBOX_JOGADOR_LARGURA = 34;
     private static final double HITBOX_JOGADOR_ALTURA = 56;
-    private static final double HITBOX_BOSS_LARGURA = 62;
-    private static final double HITBOX_BOSS_ALTURA = 82;
+    private static final double HITBOX_BOSS_LARGURA = 38;
+    private static final double HITBOX_BOSS_ALTURA = 58;
 
     private Personagem personagem;
     private Input input;
@@ -143,9 +143,11 @@ public class Final_roomController {
 
         bossView = SpriteInimigoFactory.criar(boss);
         bossView.setLayoutX(930);
-        bossView.setLayoutY(285);
+        bossView.setLayoutY(320);
         SpriteInimigoFactory.aplicarDirecao(bossView, 0, 1);
         SpriteInimigoFactory.pararAnimacao(bossView);
+        bossView.setFitWidth(Personagem.TAMANHO_VISUAL);
+        bossView.setFitHeight(Personagem.TAMANHO_VISUAL);
 
         camadaObjetos.getChildren().add(bossView);
     }

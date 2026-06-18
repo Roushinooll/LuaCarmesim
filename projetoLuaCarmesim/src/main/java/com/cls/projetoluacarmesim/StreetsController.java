@@ -133,6 +133,7 @@ public class StreetsController {
         configurarControles(root);
 
         EstadoJogo estado = EstadoJogo.getInstance();
+        
 
         if (estado.isRuaEmAndamento() && estado.getTipoRuaAtual() != null) {
             restaurarRuaSalva(estado);
