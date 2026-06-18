@@ -28,11 +28,20 @@ public class IntroController {
     private Label textoInstrucao;
 
     private final String[] dialogos = {
-            "Sinto minha cabeça pesada.",
-            "Minha visão ainda está meio turva.",
-            "Não consigo lembrar o que estava fazendo.",
-            "Ou onde sequer estou.",
-            "Minha cabeça dói muito.",
+            "Um gosto metálico invade minha boca... sangue?",
+            "Minha cabeça pulsa como se algo tivesse sido arrancado de dentro dela.",
+            "Abro os olhos devagar, mas o quarto à minha volta não é familiar.",
+            "O cheiro de pólvora ainda paira no ar, misturado ao frio da madrugada.",
+            "Há marcas no chão. Há silêncio demais. Algo terrível aconteceu aqui.",
+            "Minhas mãos tremem diante dos meus olhos.",
+            "Elas parecem minhas... mas ao mesmo tempo, não são.",
+            "Fragmentos de memória surgem e desaparecem antes que eu consiga segurá-los.",
+            "Um ritual. Um pedido desesperado. Uma tentativa de mudar o próprio destino.",
+            "Então veio a dor. O vazio. E depois... esta lua vermelha.",
+            "Pela janela, a Lua Carmesim observa como se já soubesse a resposta.",
+            "Eu deveria estar morto.",
+            "Então por que ainda consigo pensar?",
+            "Não lembro onde estou.",
             "Mal consigo lembrar quem sou."
     };
 
@@ -110,8 +119,8 @@ public class IntroController {
     private boolean pedirNomeAteSincronizar() {
         while (true) {
             TextInputDialog dialog = new TextInputDialog();
-            dialog.setTitle("Nome do Jogador");
-            dialog.setHeaderText(null);
+            dialog.setTitle("Memória Fragmentada");
+            dialog.setHeaderText("Um nome tenta emergir no fundo da minha mente.");
             dialog.setContentText("Meu nome é:");
 
             Optional<String> resultado = dialog.showAndWait();

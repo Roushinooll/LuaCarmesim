@@ -57,6 +57,9 @@ public class RestroomController {
     private Label textoDialogo;
 
     @FXML
+    private Label textoInstrucaoDialogo;
+
+    @FXML
     private Pane painelCaldeirao;
 
     @FXML
@@ -78,6 +81,11 @@ public class RestroomController {
     private boolean inventarioAberto = false;
     private boolean caldeiraoAberto = false;
 
+    private String[] dialogosAtuais = new String[0];
+    private int indiceDialogoAtual = 0;
+    private Runnable acaoAoFinalDialogo;
+    private boolean dialogoPermiteCancelar = true;
+
     private final List<ObjetoInterativo> objetosInterativos = new ArrayList<>();
     private final Map<String, FormulaPocao> receitasCaldeirao = new LinkedHashMap<>();
 
@@ -92,6 +100,10 @@ public class RestroomController {
             listaReceitasCaldeirao.getSelectionModel().selectedItemProperty().addListener((obs, antigo, novo) -> {
                 atualizarTextoReceitaSelecionada(novo);
             });
+        }
+
+        if (caixaDialogo != null) {
+            caixaDialogo.setOnMouseClicked(e -> avancarDialogoRestroom());
         }
     }
 
@@ -166,13 +178,13 @@ public class RestroomController {
                     return;
                 }
 
-                if (e.getCode() == KeyCode.ENTER) {
-                    fecharDialogo();
-                    sairParaRua();
+                if (e.getCode() == KeyCode.ENTER || e.getCode() == KeyCode.SPACE) {
+                    avancarDialogoRestroom();
                     e.consume();
+                    return;
                 }
 
-                if (e.getCode() == KeyCode.ESCAPE) {
+                if (e.getCode() == KeyCode.ESCAPE && dialogoPermiteCancelar) {
                     fecharDialogo();
                     e.consume();
                 }
@@ -193,14 +205,14 @@ public class RestroomController {
 
         ObjetoInterativo mesaInterativa = new ObjetoInterativo(
                 mesa,
-                "F - Pegar Revólver Enferrujado",
-                this::pegarArma
+                "F - Examinar mesa",
+                this::interagirComMesa
         );
 
         ObjetoInterativo caldeiraoInterativo = new ObjetoInterativo(
                 caldeirao,
-                "F - Usar caldeirão de poções",
-                this::abrirCaldeirao
+                "F - Usar bancada de alquimia",
+                this::interagirComCaldeirao
         );
 
         ObjetoInterativo portaInterativa = new ObjetoInterativo(
@@ -245,6 +257,36 @@ public class RestroomController {
         }
     }
 
+    private void interagirComMesa() {
+
+        EstadoJogo estado = EstadoJogo.getInstance();
+
+        if (pegouArma || estado.getInventario().possuiItem("Revólver Enferrujado")) {
+            textoInteracao.setText("Você já pegou a arma.");
+            mesa.setStyle("-fx-fill: #2a2a2a;");
+            return;
+        }
+
+        if (!estado.isDialogoInicialMesaVisto()) {
+            estado.setDialogoInicialMesaVisto(true);
+            abrirDialogoSequencial(
+                    new String[]{
+                            "Sobre a mesa, algo metálico repousa sob uma camada fina de poeira.",
+                            "Um revólver antigo. Frio, pesado, silencioso demais para este quarto.",
+                            "O cheiro de óleo velho e pólvora desperta uma sensação que não parece minha.",
+                            "Meus dedos hesitam antes de tocar o cabo, como se esperassem uma lembrança voltar.",
+                            "Se eu abrir aquela porta desarmado, talvez este novo corpo não dure muito tempo."
+                    },
+                    "ENTER / ESPAÇO - Continuar",
+                    false,
+                    this::pegarArma
+            );
+            return;
+        }
+
+        pegarArma();
+    }
+
     private void pegarArma() {
 
         EstadoJogo estado = EstadoJogo.getInstance();
@@ -283,8 +325,11 @@ public class RestroomController {
                 .possuiItem("Revólver Enferrujado");
 
         if (!possuiArma) {
-            abrirDialogo(
-                    "Tem certeza que não esqueceu nada?\n"
+            abrirDialogoSequencial(
+                    new String[]{"Tem certeza que não esqueceu nada?"},
+                    "ENTER - Sair     ESC - Voltar",
+                    true,
+                    this::sairParaRua
             );
             return;
         }
@@ -295,6 +340,29 @@ public class RestroomController {
         }
 
         sairParaRua();
+    }
+
+    private void interagirComCaldeirao() {
+        EstadoJogo estado = EstadoJogo.getInstance();
+
+        if (!estado.isDialogoInicialCaldeiraoVisto()) {
+            estado.setDialogoInicialCaldeiraoVisto(true);
+            abrirDialogoSequencial(
+                    new String[]{
+                            "A bancada de alquimia está coberta por frascos, ervas secas e símbolos riscados às pressas.",
+                            "Eu não lembro de ter estudado nada disso... mas meus olhos reconhecem padrões nas fórmulas.",
+                            "Não são simples remédios. Estas poções parecem reescrever o corpo e a mente de quem as bebe.",
+                            "Cada ingrediente tem um peso, cada receita parece um degrau de uma escada proibida.",
+                            "Se eu reunir os materiais certos, talvez consiga transformar este medo em alguma forma de poder."
+                    },
+                    "ENTER / ESPAÇO - Continuar",
+                    false,
+                    this::abrirCaldeirao
+            );
+            return;
+        }
+
+        abrirCaldeirao();
     }
 
     private void abrirCaldeirao() {
@@ -505,24 +573,73 @@ public class RestroomController {
         return String.join(", ", partes);
     }
 
-    private void abrirDialogo(String texto) {
+    private void abrirDialogoSequencial(
+            String[] dialogos,
+            String textoInstrucao,
+            boolean permiteCancelar,
+            Runnable acaoFinal
+    ) {
         dialogoAberto = true;
         podeInteragir = false;
         input.interact = false;
 
-        textoDialogo.setText(texto);
+        dialogosAtuais = dialogos == null ? new String[0] : dialogos;
+        indiceDialogoAtual = 0;
+        acaoAoFinalDialogo = acaoFinal;
+        dialogoPermiteCancelar = permiteCancelar;
+
         textoInteracao.setText("");
 
+        if (textoInstrucaoDialogo != null) {
+            textoInstrucaoDialogo.setText(textoInstrucao);
+        }
+
+        if (dialogosAtuais.length == 0) {
+            finalizarDialogoRestroom();
+            return;
+        }
+
+        textoDialogo.setText(dialogosAtuais[indiceDialogoAtual]);
         caixaDialogo.setVisible(true);
         caixaDialogo.toFront();
 
         Platform.runLater(() -> caixaDialogo.getScene().getRoot().requestFocus());
     }
 
+    private void avancarDialogoRestroom() {
+        if (!dialogoAberto || caldeiraoAberto) {
+            return;
+        }
+
+        indiceDialogoAtual++;
+
+        if (indiceDialogoAtual >= dialogosAtuais.length) {
+            finalizarDialogoRestroom();
+            return;
+        }
+
+        textoDialogo.setText(dialogosAtuais[indiceDialogoAtual]);
+    }
+
+    private void finalizarDialogoRestroom() {
+        Runnable acao = acaoAoFinalDialogo;
+
+        fecharDialogo();
+
+        if (acao != null) {
+            acao.run();
+        }
+    }
+
     private void fecharDialogo() {
         dialogoAberto = false;
         podeInteragir = true;
         input.interact = false;
+
+        dialogosAtuais = new String[0];
+        indiceDialogoAtual = 0;
+        acaoAoFinalDialogo = null;
+        dialogoPermiteCancelar = true;
 
         caixaDialogo.setVisible(false);
 

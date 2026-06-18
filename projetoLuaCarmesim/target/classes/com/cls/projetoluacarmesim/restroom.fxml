@@ -100,7 +100,7 @@
                    layoutX="35.0"
                    layoutY="25.0"
                    prefWidth="630.0"
-                   prefHeight="70.0"
+                   prefHeight="90.0"
                    text="Tem certeza que não esqueceu nada?"
                    wrapText="true"
                    style="
@@ -109,9 +109,10 @@
                        -fx-font-family: 'Georgia';
                    " />
 
-            <Label layoutX="35.0"
-                   layoutY="110.0"
-                   text="ENTER - Sair     ESC - Voltar"
+            <Label fx:id="textoInstrucaoDialogo"
+                   layoutX="35.0"
+                   layoutY="125.0"
+                   text="ENTER / ESPAÇO - Continuar"
                    style="
                        -fx-text-fill: #c96b6b;
                        -fx-font-size: 18px;

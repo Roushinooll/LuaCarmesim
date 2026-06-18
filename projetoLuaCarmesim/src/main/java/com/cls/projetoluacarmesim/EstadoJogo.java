@@ -35,6 +35,9 @@ public class EstadoJogo {
     private boolean bossFinalDerrotado = false;
     private int moedasOuro = 0;
 
+    private boolean dialogoInicialMesaVisto = false;
+    private boolean dialogoInicialCaldeiraoVisto = false;
+
     private final List<double[]> posicoesInimigosRua = new ArrayList<>();
     private final List<TipoInimigo> tiposInimigosRua = new ArrayList<>();
     private final List<double[]> posicoesItensRua = new ArrayList<>();
@@ -187,6 +190,23 @@ public class EstadoJogo {
 
     public void setBossFinalDerrotado(boolean bossFinalDerrotado) {
         this.bossFinalDerrotado = bossFinalDerrotado;
+    }
+
+
+    public boolean isDialogoInicialMesaVisto() {
+        return dialogoInicialMesaVisto;
+    }
+
+    public void setDialogoInicialMesaVisto(boolean dialogoInicialMesaVisto) {
+        this.dialogoInicialMesaVisto = dialogoInicialMesaVisto;
+    }
+
+    public boolean isDialogoInicialCaldeiraoVisto() {
+        return dialogoInicialCaldeiraoVisto;
+    }
+
+    public void setDialogoInicialCaldeiraoVisto(boolean dialogoInicialCaldeiraoVisto) {
+        this.dialogoInicialCaldeiraoVisto = dialogoInicialCaldeiraoVisto;
     }
 
     public int getMoedasOuro() {
