@@ -13,6 +13,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -115,6 +116,13 @@ public class Final_roomController {
     }
 
     private void desenharCenario() {
+        ImageView fundoImagem = criarImagemFundo("/image/fundos/boss_room.jpg");
+
+        if (fundoImagem != null) {
+            camadaCenario.getChildren().add(fundoImagem);
+            return;
+        }
+
         Rectangle fundo = new Rectangle(0, 0, 1280, 720);
         fundo.setFill(Color.rgb(5, 4, 8));
 
@@ -138,12 +146,30 @@ public class Final_roomController {
         camadaCenario.getChildren().addAll(fundo, piso, brilhoLua, espelhoCentral);
     }
 
+    private ImageView criarImagemFundo(String caminhoImagem) {
+        java.net.URL recurso = getClass().getResource(caminhoImagem);
+
+        if (recurso == null) {
+            System.out.println("Imagem de fundo não encontrada: " + caminhoImagem);
+            return null;
+        }
+
+        ImageView fundo = new ImageView(new Image(recurso.toExternalForm()));
+        fundo.setFitWidth(1280);
+        fundo.setFitHeight(720);
+        fundo.setPreserveRatio(false);
+        fundo.setSmooth(false);
+        fundo.setMouseTransparent(true);
+
+        return fundo;
+    }
+
     private void criarBossEstatico() {
         boss = new Boss();
 
         bossView = SpriteInimigoFactory.criar(boss);
-        bossView.setLayoutX(930);
-        bossView.setLayoutY(320);
+        bossView.setLayoutX(605);
+        bossView.setLayoutY(330);
         SpriteInimigoFactory.aplicarDirecao(bossView, 0, 1);
         SpriteInimigoFactory.pararAnimacao(bossView);
         bossView.setFitWidth(Personagem.TAMANHO_VISUAL);

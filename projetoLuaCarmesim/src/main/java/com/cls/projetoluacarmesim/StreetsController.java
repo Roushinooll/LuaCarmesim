@@ -641,6 +641,10 @@ public class StreetsController {
     }
 
     private String caminhoImagemFundoRua(TipoRua tipoRua) {
+        if (ehSalaMercador(numeroRua)) {
+            return "/image/fundos/safe_room.jpg";
+        }
+
         if (tipoRua == null) {
             return "/image/fundos/rua.png";
         }
@@ -756,23 +760,19 @@ public class StreetsController {
     }
 
     private void gerarMercadorSeguro() {
-        mercadorView = new Rectangle(58, 78);
-        mercadorView.setLayoutX(630);
-        mercadorView.setLayoutY(308);
+        /*
+         * A imagem safe_room.jpg já possui o mercador e a bancada desenhados.
+         * Aqui mantemos apenas uma hitbox invisível para preservar a interação com F.
+         */
+        mercadorView = new Rectangle(72, 92);
+        mercadorView.setLayoutX(604);
+        mercadorView.setLayoutY(300);
         mercadorView.setArcWidth(12);
         mercadorView.setArcHeight(12);
-        mercadorView.setFill(Color.rgb(45, 90, 130));
-        mercadorView.setStroke(Color.rgb(214, 175, 55));
-        mercadorView.setStrokeWidth(3);
+        mercadorView.setOpacity(0.0);
+        mercadorView.setFill(Color.WHITE);
 
-        Rectangle bancada = new Rectangle(555, 392, 215, 36);
-        bancada.setArcWidth(8);
-        bancada.setArcHeight(8);
-        bancada.setFill(Color.rgb(65, 42, 24));
-        bancada.setStroke(Color.rgb(125, 85, 45));
-        bancada.setStrokeWidth(2);
-
-        camadaObjetos.getChildren().addAll(bancada, mercadorView);
+        camadaObjetos.getChildren().add(mercadorView);
     }
 
     private void verificarInteracaoMercador() {

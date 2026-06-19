@@ -23,7 +23,9 @@ com\cls\projetoluacarmesim\model\Ranking.class
 com\cls\projetoluacarmesim\model\Jogador.class
 com\cls\projetoluacarmesim\model\Boss.class
 com\cls\projetoluacarmesim\enums\TipoRua.class
+com\cls\projetoluacarmesim\InventarioController$AbaInventario.class
 com\cls\projetoluacarmesim\dao\RankingDAO.class
+com\cls\projetoluacarmesim\InventarioController$1.class
 com\cls\projetoluacarmesim\EstadoJogo.class
 com\cls\projetoluacarmesim\CombateController.class
 com\cls\projetoluacarmesim\util\CatalogoItens$EntradaItem.class

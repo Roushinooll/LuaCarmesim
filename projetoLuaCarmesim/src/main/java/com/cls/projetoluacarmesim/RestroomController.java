@@ -27,6 +27,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -34,6 +35,9 @@ import javafx.scene.layout.Pane;
 import javafx.scene.shape.Rectangle;
 
 public class RestroomController {
+
+    @FXML
+    private ImageView fundoRestroom;
 
     @FXML
     private ImageView personagemView;
@@ -115,6 +119,8 @@ public class RestroomController {
         personagem = new Personagem(personagemView);
 
         EstadoJogo estado = EstadoJogo.getInstance();
+        pegouArma = estado.getInventario().possuiItem("Revólver Enferrujado");
+        atualizarFundoRestroom();
 
         if (estado.isPosicaoPersonagemSalva()) {
             personagemView.setTranslateX(estado.getPersonagemTranslateX());
@@ -149,6 +155,34 @@ public class RestroomController {
         };
 
         loop.start();
+    }
+
+    private void atualizarFundoRestroom() {
+        if (fundoRestroom == null) {
+            return;
+        }
+
+        boolean possuiArma = pegouArma
+                || EstadoJogo.getInstance().getInventario().possuiItem("Revólver Enferrujado");
+
+        String caminho = possuiArma
+                ? "/image/fundos/restroom_without.jpg"
+                : "/image/fundos/restroom_gun.jpg";
+
+        java.net.URL recurso = getClass().getResource(caminho);
+
+        if (recurso == null) {
+            System.out.println("Imagem da restroom não encontrada: " + caminho);
+            return;
+        }
+
+        fundoRestroom.setImage(new Image(recurso.toExternalForm()));
+        fundoRestroom.setFitWidth(1280);
+        fundoRestroom.setFitHeight(720);
+        fundoRestroom.setPreserveRatio(false);
+        fundoRestroom.setSmooth(false);
+        fundoRestroom.setMouseTransparent(true);
+        fundoRestroom.toBack();
     }
 
     private void configurarControles(Parent root) {
@@ -263,7 +297,7 @@ public class RestroomController {
 
         if (pegouArma || estado.getInventario().possuiItem("Revólver Enferrujado")) {
             textoInteracao.setText("Você já pegou a arma.");
-            mesa.setStyle("-fx-fill: #2a2a2a;");
+            mesa.setStyle("-fx-fill: white;");
             return;
         }
 
@@ -293,7 +327,7 @@ public class RestroomController {
 
         if (pegouArma || estado.getInventario().possuiItem("Revólver Enferrujado")) {
             textoInteracao.setText("Você já pegou a arma.");
-            mesa.setStyle("-fx-fill: #2a2a2a;");
+            mesa.setStyle("-fx-fill: white;");
             return;
         }
 
@@ -315,7 +349,8 @@ public class RestroomController {
 
         textoInteracao.setText("Você pegou: Revólver Enferrujado.");
 
-        mesa.setStyle("-fx-fill: #2a2a2a;");
+        atualizarFundoRestroom();
+        mesa.setStyle("-fx-fill: white;");
     }
 
     private void tentarSairParaRua() {
