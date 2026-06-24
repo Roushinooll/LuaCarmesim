@@ -8,7 +8,7 @@ import com.cls.projetoluacarmesim.enums.TipoInimigo;
  */
 public class Boss extends Beyonder {
 
-    public static final int VIDA_MAXIMA_BOSS = 400;
+    public static final int VIDA_MAXIMA_BOSS = 340;
 
     private String caminhoAtual;
     private int faseAtual;
@@ -19,18 +19,18 @@ public class Boss extends Beyonder {
                 "Carcereiro da Lua",
                 "Um Beyonder anômalo preso ao ciclo da Lua Carmesim.",
                 VIDA_MAXIMA_BOSS,
-                26,
-                16,
-                8,
-                3,
+                21,
+                12,
+                5,
+                2,
                 null,
                 "Fragmento de Tentação Carmesim",
                 200,
                 false,
                 100,
                 5,
-                240,
-                12,
+                190,
+                16,
                 "Marionetista",
                 false
         );
@@ -57,10 +57,10 @@ public class Boss extends Beyonder {
 
     /**
      * Atualiza a fase pelo HP atual.
-     * 400-301: Vidente
-     * 300-201: Caçador
-     * 200-101: Bardo
-     * 100-0: Criminoso
+     * 340-256: Vidente
+     * 255-171: Caçador
+     * 170-86: Bardo
+     * 85-0: Criminoso
      *
      * @return true se houve troca de fase.
      */
@@ -70,15 +70,15 @@ public class Boss extends Beyonder {
         String novoCaminho;
         String novaPocao;
 
-        if (vida <= 100) {
+        if (vida <= 85) {
             novaFase = 4;
             novoCaminho = "Criminoso";
             novaPocao = "Apóstolo do Desejo";
-        } else if (vida <= 200) {
+        } else if (vida <= 170) {
             novaFase = 3;
             novoCaminho = "Bardo";
             novaPocao = "Sacerdote da Luz";
-        } else if (vida <= 300) {
+        } else if (vida <= 255) {
             novaFase = 2;
             novoCaminho = "Caçador";
             novaPocao = "Ceifador";
@@ -103,14 +103,14 @@ public class Boss extends Beyonder {
 
         switch (faseAtual) {
             case 2:
-                return danoBase + 10;
-            case 3:
                 return danoBase + 6;
+            case 3:
+                return danoBase + 4;
             case 4:
-                return danoBase + 14;
+                return danoBase + 8;
             case 1:
             default:
-                return danoBase + 8;
+                return danoBase + 5;
         }
     }
 

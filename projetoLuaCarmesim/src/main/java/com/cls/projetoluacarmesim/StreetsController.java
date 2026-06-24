@@ -858,31 +858,31 @@ public class StreetsController {
     }
 
     private double calcularChanceBeyonder() {
-        if (numeroRua <= 10) {
+        if (numeroRua <= 12) {
             return 0.0;
         }
 
-        if (numeroRua <= 14) {
-            return 0.20;
-        }
-
-        if (numeroRua <= 19) {
-            return 0.35;
+        if (numeroRua <= 18) {
+            return 0.12;
         }
 
         if (numeroRua <= 24) {
-            return 0.50;
+            return 0.25;
         }
 
-        if (numeroRua <= 29) {
-            return 0.65;
+        if (numeroRua <= 30) {
+            return 0.40;
         }
 
-        if (numeroRua <= 39) {
-            return 0.80;
+        if (numeroRua <= 40) {
+            return 0.60;
         }
 
-        return 1.0;
+        if (numeroRua <= 55) {
+            return 0.78;
+        }
+
+        return 0.90;
     }
 
     private Bandido criarBandidoAleatorio() {
@@ -900,17 +900,17 @@ public class StreetsController {
                 0,
                 "Bandido das Vielas",
                 "Um criminoso comum tentando sobreviver nas ruas distorcidas.",
-                55 + numeroRua * 2,
-                5 + numeroRua / 2,
-                arma == Bandido.TipoArma.DESARMADO ? 0 : 4 + numeroRua / 2,
-                1 + numeroRua / 8,
+                45 + numeroRua,
+                4 + numeroRua / 3,
+                arma == Bandido.TipoArma.DESARMADO ? 0 : 2 + numeroRua / 4,
+                Math.max(0, numeroRua / 12),
                 1,
                 null,
                 "Sangue Coagulado",
-                4 + numeroRua / 2,
-                30,
+                3 + numeroRua / 3,
+                24,
                 arma,
-                Math.max(1, numeroRua / 2)
+                Math.max(1, numeroRua / 3)
         );
     }
 
@@ -923,19 +923,19 @@ public class StreetsController {
                 0,
                 "Beyonder Hostil",
                 "Um usuário de poção enlouquecido pela influência da Lua Carmesim.",
-                80 + numeroRua * 2 + poderSequencia * 18,
-                7 + numeroRua / 3 + poderSequencia * 2,
-                5 + numeroRua / 4 + poderSequencia * 2,
-                2 + numeroRua / 12 + poderSequencia,
+                65 + numeroRua + poderSequencia * 12,
+                5 + numeroRua / 4 + poderSequencia,
+                3 + numeroRua / 5 + poderSequencia,
+                1 + numeroRua / 18 + Math.max(0, poderSequencia - 1),
                 1,
                 null,
                 "Sangue Negro",
-                9 + numeroRua + poderSequencia * 5,
+                7 + numeroRua / 2 + poderSequencia * 4,
                 false,
-                80,
+                72,
                 sequencia,
-                60 + numeroRua + poderSequencia * 12,
-                12,
+                45 + numeroRua / 2 + poderSequencia * 9,
+                14,
                 nomePocao,
                 false
         );
@@ -946,53 +946,61 @@ public class StreetsController {
     }
 
     private int sortearSequenciaBeyonder() {
-        if (numeroRua <= 19) {
+        if (numeroRua <= 24) {
             return 9;
         }
 
-        if (numeroRua <= 29) {
-            return Math.random() < 0.75 ? 8 : 9;
+        if (numeroRua <= 34) {
+            return Math.random() < 0.70 ? 9 : 8;
         }
 
-        if (numeroRua <= 39) {
+        if (numeroRua <= 44) {
             double sorteio = Math.random();
 
-            if (sorteio < 0.70) {
-                return 7;
-            }
-
-            if (sorteio < 0.92) {
+            if (sorteio < 0.55) {
                 return 8;
             }
 
-            return 9;
-        }
-
-        if (numeroRua <= 49) {
-            double sorteio = Math.random();
-
-            if (sorteio < 0.70) {
-                return 6;
+            if (sorteio < 0.88) {
+                return 9;
             }
 
-            if (sorteio < 0.92) {
+            return 7;
+        }
+
+        if (numeroRua <= 58) {
+            double sorteio = Math.random();
+
+            if (sorteio < 0.55) {
                 return 7;
             }
 
-            return 8;
+            if (sorteio < 0.83) {
+                return 8;
+            }
+
+            if (sorteio < 0.96) {
+                return 6;
+            }
+
+            return 9;
         }
 
         double sorteio = Math.random();
 
-        if (sorteio < 0.70) {
-            return 5;
-        }
-
-        if (sorteio < 0.92) {
+        if (sorteio < 0.45) {
             return 6;
         }
 
-        return 7;
+        if (sorteio < 0.75) {
+            return 7;
+        }
+
+        if (sorteio < 0.92) {
+            return 5;
+        }
+
+        return 8;
     }
 
     private String sortearPocaoBeyonder(int sequencia) {

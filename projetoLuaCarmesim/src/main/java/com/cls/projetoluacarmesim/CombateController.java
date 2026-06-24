@@ -27,11 +27,11 @@ import javafx.scene.layout.VBox;
 
 public class CombateController {
 
-    private static final int VIDA_MAXIMA_JOGADOR_TESTE = 100;
-    private static final int SANIDADE_MAXIMA_JOGADOR_TESTE = 100;
+    private static final int VIDA_MAXIMA_JOGADOR_TESTE = 120;
+    private static final int SANIDADE_MAXIMA_JOGADOR_TESTE = 110;
     private static final int MUNICAO_MAXIMA_REVOLVER = 6;
-    private static final int DANO_ATAQUE_FISICO = 12;
-    private static final int DANO_POR_TIRO = 28;
+    private static final int DANO_ATAQUE_FISICO = 14;
+    private static final int DANO_POR_TIRO = 24;
     private static final String NOME_REVOLVER = "Revólver Enferrujado";
 
     @FXML private Label labelTitulo;
@@ -72,6 +72,7 @@ public class CombateController {
     private int municoesRevolver;
     private boolean possuiRevolver;
     private boolean acaoDisponivel;
+    private boolean sequenciaTirosEmAndamento;
     private boolean combateFinalizado;
 
     private CombatenteMistico jogadorCombate;
@@ -105,6 +106,7 @@ public class CombateController {
         this.municoesRevolver = MUNICAO_MAXIMA_REVOLVER;
         this.possuiRevolver = EstadoJogo.getInstance().getInventario().possuiItem(NOME_REVOLVER);
         this.acaoDisponivel = true;
+        this.sequenciaTirosEmAndamento = false;
         this.combateFinalizado = false;
 
         criarCombatentesMisticos();
@@ -116,7 +118,8 @@ public class CombateController {
 
         adicionarLog("Um " + nomeInimigo() + " bloqueia seu caminho.");
         adicionarLog("Sistema atual: uma ação por turno, no estilo RPG de turno.");
-        adicionarLog("Ataque, tiro, defesa, conversa ou habilidade consomem a ação do turno.");
+        adicionarLog("Ataque físico, defesa, conversa e habilidade consomem a ação do turno.");
+        adicionarLog("O revólver agora permite disparar o tambor inteiro na mesma rodada antes do inimigo agir.");
 
         if (!habilidadesJogador.isEmpty()) {
             adicionarLog("Você está no " + HabilidadeCatalogo.nomeCaminhoParaExibicao(jogadorCombate.getCaminho())
@@ -283,6 +286,11 @@ public class CombateController {
 
         if (inimigo instanceof Beyonder) {
             return new String[] {
+                    Math.random() < 0.5
+                            ? "/image/battle_sprites/chars/beyonder1_pose.png"
+                            : "/image/battle_sprites/chars/beyonder2_pose.png",
+                    "/image/Battle Sprite/chars/beyonder1_pose.png",
+                    "/image/Battle Sprite/chars/beyonder2_pose.png",
                     "/image/sprites/Beyonder1Geral/rotations/Lados.png",
                     "/image/sprites/Beyonder2Geral/rotations/Lados.png",
                     "/image/sprites/Bandido1Geral/rotations/Lados.png"
@@ -291,6 +299,11 @@ public class CombateController {
 
         if (inimigo instanceof Bandido) {
             return new String[] {
+                    Math.random() < 0.5
+                            ? "/image/battle_sprites/chars/bandido1_pose.png"
+                            : "/image/battle_sprites/chars/bandido2_pose.png",
+                    "/image/Battle Sprite/chars/bandido1_pose.png",
+                    "/image/Battle Sprite/chars/bandido2_pose.png",
                     "/image/sprites/Bandido1Geral/rotations/Lados.png",
                     "/image/sprites/Bandido2Geral/rotations/lados.png",
                     "/image/sprites/Bandido2Geral/rotations/Lados.png",
@@ -383,7 +396,13 @@ public class CombateController {
 
     @FXML
     private void atirarRevolver() {
-        if (!podeAgir()) {
+        if (combateFinalizado) {
+            return;
+        }
+
+        if (!acaoDisponivel && !sequenciaTirosEmAndamento) {
+            adicionarLog("A ação deste turno já foi usada.");
+            atualizarTela();
             return;
         }
 
@@ -395,8 +414,14 @@ public class CombateController {
 
         if (municoesRevolver <= 0) {
             adicionarLog("O tambor está vazio.");
-            atualizarTela();
+            encerrarSequenciaDeTiros();
             return;
+        }
+
+        if (!sequenciaTirosEmAndamento) {
+            sequenciaTirosEmAndamento = true;
+            acaoDisponivel = false;
+            adicionarLog("Você inicia uma sequência de tiros. Pode continuar disparando até esvaziar o tambor.");
         }
 
         municoesRevolver--;
@@ -408,8 +433,6 @@ public class CombateController {
                 true
         );
 
-        acaoDisponivel = false;
-
         if (dano <= 0) {
             adicionarLog("Você dispara 1 bala do revólver, mas " + nomeInimigo() + " evade o tiro.");
         } else {
@@ -417,6 +440,33 @@ public class CombateController {
             refletirDanoSeNecessario(inimigoCombate, jogadorCombate, dano);
         }
 
+        sincronizarEstadoCombate();
+
+        if (jogadorFoiDerrotado()) {
+            sequenciaTirosEmAndamento = false;
+            finalizarPorMorte();
+            return;
+        }
+
+        if (!inimigoCombate.estaVivo()) {
+            sequenciaTirosEmAndamento = false;
+            finalizarPorVitoria();
+            return;
+        }
+
+        if (municoesRevolver <= 0) {
+            adicionarLog("O tambor esvaziou. A rodada de tiros termina.");
+            encerrarSequenciaDeTiros();
+            return;
+        }
+
+        adicionarLog("Balas restantes no tambor: " + municoesRevolver + ".");
+        atualizarTela();
+    }
+
+    private void encerrarSequenciaDeTiros() {
+        sequenciaTirosEmAndamento = false;
+        acaoDisponivel = false;
         sincronizarEstadoCombate();
 
         if (jogadorFoiDerrotado()) {
@@ -439,7 +489,7 @@ public class CombateController {
             return;
         }
 
-        jogadorCombate.configurarDefesa(1, 50);
+        jogadorCombate.configurarDefesa(1, 60);
         acaoDisponivel = false;
 
         adicionarLog("Você assume postura defensiva. O próximo dano será reduzido.");
@@ -652,7 +702,7 @@ public class CombateController {
     }
 
     private boolean deveInimigoUsarHabilidade() {
-        int chance = inimigo instanceof Boss ? 85 : 50;
+        int chance = inimigo instanceof Boss ? 55 : 30;
 
         return !habilidadesInimigo.isEmpty()
                 && inimigoCombate.podeUsarHabilidadeEspecial()
@@ -876,7 +926,11 @@ public class CombateController {
             atualizarBarra(barraSanidadeInimigo, inimigoCombate.getSanidadeAtual(), inimigoCombate.getSanidadeMaxima());
         }
 
-        labelAcoes.setText(acaoDisponivel ? "Ação disponível" : "Ação usada");
+        if (sequenciaTirosEmAndamento) {
+            labelAcoes.setText("Sequência de tiros em andamento");
+        } else {
+            labelAcoes.setText(acaoDisponivel ? "Ação disponível" : "Ação usada");
+        }
 
         if (labelMunicao != null) {
             if (possuiRevolver) {
@@ -886,8 +940,9 @@ public class CombateController {
             }
         }
 
-        boolean podeClicar = !combateFinalizado && acaoDisponivel;
-        boolean podeAtirar = podeClicar && possuiRevolver && municoesRevolver > 0;
+        boolean podeClicar = !combateFinalizado && acaoDisponivel && !sequenciaTirosEmAndamento;
+        boolean podeContinuarTiro = !combateFinalizado && sequenciaTirosEmAndamento && possuiRevolver && municoesRevolver > 0;
+        boolean podeAtirar = (podeClicar || podeContinuarTiro) && possuiRevolver && municoesRevolver > 0;
         boolean podeUsarHabilidade = podeClicar
                 && habilidadesJogador != null
                 && !habilidadesJogador.isEmpty()
@@ -905,7 +960,7 @@ public class CombateController {
             botaoVoltarAcoes.setDisable(combateFinalizado);
         }
         atualizarEstadoBotoesHabilidades(podeUsarHabilidade && menuHabilidadesEstaAberto());
-        botaoFugir.setDisable(combateFinalizado);
+        botaoFugir.setDisable(combateFinalizado || sequenciaTirosEmAndamento);
     }
 
 

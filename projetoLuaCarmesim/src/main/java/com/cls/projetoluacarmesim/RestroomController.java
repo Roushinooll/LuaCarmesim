@@ -90,6 +90,9 @@ public class RestroomController {
     private Runnable acaoAoFinalDialogo;
     private boolean dialogoPermiteCancelar = true;
 
+    private static final double LARGURA_CENARIO_QUARTO = 1280.0;
+    private static final double ALTURA_CENARIO_QUARTO = 720.0;
+
     private final List<ObjetoInterativo> objetosInterativos = new ArrayList<>();
     private final Map<String, FormulaPocao> receitasCaldeirao = new LinkedHashMap<>();
 
@@ -125,6 +128,7 @@ public class RestroomController {
         if (estado.isPosicaoPersonagemSalva()) {
             personagemView.setTranslateX(estado.getPersonagemTranslateX());
             personagemView.setTranslateY(estado.getPersonagemTranslateY());
+            limitarPersonagemAoCenario();
         }
 
         configurarControles(root);
@@ -149,12 +153,48 @@ public class RestroomController {
 
                 if (!dialogoAberto && !inventarioAberto) {
                     personagem.update(delta, input);
+                    limitarPersonagemAoCenario();
                     verificarInteracoes();
                 }
             }
         };
 
         loop.start();
+    }
+
+    private void limitarPersonagemAoCenario() {
+        if (personagemView == null) {
+            return;
+        }
+
+        double larguraPersonagem = personagemView.getFitWidth() > 0
+                ? personagemView.getFitWidth()
+                : Personagem.TAMANHO_VISUAL;
+
+        double alturaPersonagem = personagemView.getFitHeight() > 0
+                ? personagemView.getFitHeight()
+                : Personagem.TAMANHO_VISUAL;
+
+        double minTranslateX = -personagemView.getLayoutX();
+        double maxTranslateX = LARGURA_CENARIO_QUARTO - personagemView.getLayoutX() - larguraPersonagem;
+
+        double minTranslateY = -personagemView.getLayoutY();
+        double maxTranslateY = ALTURA_CENARIO_QUARTO - personagemView.getLayoutY() - alturaPersonagem;
+
+        personagemView.setTranslateX(clamp(personagemView.getTranslateX(), minTranslateX, maxTranslateX));
+        personagemView.setTranslateY(clamp(personagemView.getTranslateY(), minTranslateY, maxTranslateY));
+    }
+
+    private double clamp(double valor, double minimo, double maximo) {
+        if (valor < minimo) {
+            return minimo;
+        }
+
+        if (valor > maximo) {
+            return maximo;
+        }
+
+        return valor;
     }
 
     private void atualizarFundoRestroom() {

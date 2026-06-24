@@ -13,23 +13,23 @@ public class GeradorRua {
     }
 
     public int sortearQuantidadeInimigos(int numeroRua) {
-        if (numeroRua <= 5) {
+        if (numeroRua <= 8) {
             return 1;
         }
 
-        if (numeroRua <= 10) {
-            return random.nextDouble() < 0.70 ? 1 : 2;
+        if (numeroRua <= 16) {
+            return random.nextDouble() < 0.80 ? 1 : 2;
         }
 
-        if (numeroRua <= 25) {
-            return random.nextBoolean() ? 1 : 2;
+        if (numeroRua <= 32) {
+            return random.nextDouble() < 0.65 ? 1 : 2;
         }
 
-        if (numeroRua <= 40) {
-            return 1 + random.nextInt(3);
+        if (numeroRua <= 48) {
+            return random.nextDouble() < 0.45 ? 1 : 2;
         }
 
-        return 2 + random.nextInt(2);
+        return 2;
     }
 
     public int sortearQuantidadeItens(int numeroRua) {
@@ -37,7 +37,7 @@ public class GeradorRua {
             return 1;
         }
 
-        return random.nextBoolean() ? 1 : 2;
+        return random.nextDouble() < 0.65 ? 1 : 2;
     }
 
     public double sortearX(double minimo, double maximo) {
