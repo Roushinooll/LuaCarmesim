@@ -11,6 +11,7 @@ import com.cls.projetoluacarmesim.util.GeradorRua;
 import com.cls.projetoluacarmesim.util.CatalogoItens;
 import com.cls.projetoluacarmesim.util.CatalogoItens.EntradaItem;
 import com.cls.projetoluacarmesim.util.Input;
+import com.cls.projetoluacarmesim.util.ImagemUtils;
 import com.cls.projetoluacarmesim.util.Personagem;
 import com.cls.projetoluacarmesim.util.InimigoMapa;
 import com.cls.projetoluacarmesim.util.SpriteInimigoFactory;
@@ -37,7 +38,6 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -619,30 +619,20 @@ public class StreetsController {
             return null;
         }
 
-        java.net.URL recurso = getClass().getResource(caminhoImagem);
+        /*
+         * Usa PNG primeiro e deixa o JPG como fallback. Isso evita o bug do
+         * fundo sumir em alguns PCs quando o JavaFX/JDK não renderiza o JPG.
+         */
+        String fallbackJpg = caminhoImagem.endsWith(".png")
+                ? caminhoImagem.substring(0, caminhoImagem.length() - 4) + ".jpg"
+                : caminhoImagem.substring(0, caminhoImagem.lastIndexOf('.')) + ".jpg";
 
-        if (recurso == null) {
-            System.out.println("Imagem de fundo não encontrada: " + caminhoImagem);
-            return null;
-        }
-
-        Image imagem = new Image(recurso.toExternalForm());
-        ImageView fundo = new ImageView(imagem);
-
-        fundo.setFitWidth(1280);
-        fundo.setFitHeight(720);
-        fundo.setPreserveRatio(false);
-        fundo.setSmooth(false);
-        fundo.setMouseTransparent(true);
-        fundo.setLayoutX(0);
-        fundo.setLayoutY(0);
-
-        return fundo;
+        return ImagemUtils.criarFundo(getClass(), caminhoImagem, fallbackJpg);
     }
 
     private String caminhoImagemFundoRua(TipoRua tipoRua) {
         if (ehSalaMercador(numeroRua)) {
-            return "/image/fundos/safe_room.jpg";
+            return "/image/fundos/safe_room.png";
         }
 
         if (tipoRua == null) {
@@ -761,7 +751,7 @@ public class StreetsController {
 
     private void gerarMercadorSeguro() {
         /*
-         * A imagem safe_room.jpg já possui o mercador e a bancada desenhados.
+         * A imagem safe_room.png já possui o mercador e a bancada desenhados.
          * Aqui mantemos apenas uma hitbox invisível para preservar a interação com F.
          */
         mercadorView = new Rectangle(72, 92);

@@ -3,6 +3,7 @@ package com.cls.projetoluacarmesim;
 import com.cls.projetoluacarmesim.enums.TipoItem;
 import com.cls.projetoluacarmesim.model.ItemEspecial;
 import com.cls.projetoluacarmesim.util.Input;
+import com.cls.projetoluacarmesim.util.ImagemUtils;
 import com.cls.projetoluacarmesim.util.ObjetoInterativo;
 import com.cls.projetoluacarmesim.util.Personagem;
 import com.cls.projetoluacarmesim.util.SessaoJogador;
@@ -27,7 +28,6 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -205,23 +205,26 @@ public class RestroomController {
         boolean possuiArma = pegouArma
                 || EstadoJogo.getInstance().getInventario().possuiItem("Revólver Enferrujado");
 
-        String caminho = possuiArma
-                ? "/image/fundos/restroom_without.jpg"
-                : "/image/fundos/restroom_gun.jpg";
+        String nomeArquivo = possuiArma ? "restroom_without" : "restroom_gun";
 
-        java.net.URL recurso = getClass().getResource(caminho);
+        /*
+         * Corrigido para priorizar PNG. Em alguns PCs/JDKs o JavaFX falha ao
+         * renderizar determinados JPGs, principalmente depois de mover o projeto.
+         * Mantive o JPG como fallback para compatibilidade com versões antigas.
+         */
+        javafx.scene.image.Image imagem = ImagemUtils.carregarImagem(
+                getClass(),
+                "/image/fundos/" + nomeArquivo + ".png",
+                "/image/fundos/" + nomeArquivo + ".jpg"
+        );
 
-        if (recurso == null) {
-            System.out.println("Imagem da restroom não encontrada: " + caminho);
+        if (imagem == null) {
+            System.out.println("Imagem da restroom não encontrada: " + nomeArquivo);
             return;
         }
 
-        fundoRestroom.setImage(new Image(recurso.toExternalForm()));
-        fundoRestroom.setFitWidth(1280);
-        fundoRestroom.setFitHeight(720);
-        fundoRestroom.setPreserveRatio(false);
-        fundoRestroom.setSmooth(false);
-        fundoRestroom.setMouseTransparent(true);
+        fundoRestroom.setImage(imagem);
+        ImagemUtils.configurarFundo(fundoRestroom);
         fundoRestroom.toBack();
     }
 

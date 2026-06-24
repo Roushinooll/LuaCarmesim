@@ -10,6 +10,7 @@ import com.cls.projetoluacarmesim.model.Beyonder;
 import com.cls.projetoluacarmesim.model.Boss;
 import com.cls.projetoluacarmesim.model.Inimigo;
 import com.cls.projetoluacarmesim.model.Jogador;
+import com.cls.projetoluacarmesim.util.ImagemUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -204,10 +205,10 @@ public class CombateController {
     private void configurarVisualBatalha() {
         if (imagemFundoBatalha != null) {
             imagemFundoBatalha.setImage(carregarImagem(
-                    "/image/battle_sprites/background.jpg",
                     "/image/battle_sprites/background.png",
-                    "/image/Battle Sprite/background.jpg",
-                    "/image/Battle Sprite/background.png"
+                    "/image/battle_sprites/background.jpg",
+                    "/image/Battle Sprite/background.png",
+                    "/image/Battle Sprite/background.jpg"
             ));
         }
 
@@ -249,25 +250,7 @@ public class CombateController {
     }
 
     private Image carregarImagem(String... caminhos) {
-        if (caminhos == null) {
-            return null;
-        }
-
-        for (String caminho : caminhos) {
-            if (caminho == null || caminho.isBlank()) {
-                continue;
-            }
-
-            try {
-                var stream = getClass().getResourceAsStream(caminho);
-                if (stream != null) {
-                    return new Image(stream);
-                }
-            } catch (Exception ignored) {
-            }
-        }
-
-        return null;
+        return ImagemUtils.carregarImagem(getClass(), caminhos);
     }
 
     private String[] caminhosSpriteInimigo() {

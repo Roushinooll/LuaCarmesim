@@ -2,6 +2,7 @@ package com.cls.projetoluacarmesim;
 
 import com.cls.projetoluacarmesim.model.Boss;
 import com.cls.projetoluacarmesim.util.Input;
+import com.cls.projetoluacarmesim.util.ImagemUtils;
 import com.cls.projetoluacarmesim.util.Personagem;
 import com.cls.projetoluacarmesim.util.SpriteInimigoFactory;
 import java.io.IOException;
@@ -13,7 +14,6 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -116,7 +116,7 @@ public class Final_roomController {
     }
 
     private void desenharCenario() {
-        ImageView fundoImagem = criarImagemFundo("/image/fundos/boss_room.jpg");
+        ImageView fundoImagem = criarImagemFundo("/image/fundos/boss_room.png", "/image/fundos/boss_room.jpg");
 
         if (fundoImagem != null) {
             camadaCenario.getChildren().add(fundoImagem);
@@ -146,22 +146,12 @@ public class Final_roomController {
         camadaCenario.getChildren().addAll(fundo, piso, brilhoLua, espelhoCentral);
     }
 
-    private ImageView criarImagemFundo(String caminhoImagem) {
-        java.net.URL recurso = getClass().getResource(caminhoImagem);
-
-        if (recurso == null) {
-            System.out.println("Imagem de fundo não encontrada: " + caminhoImagem);
-            return null;
-        }
-
-        ImageView fundo = new ImageView(new Image(recurso.toExternalForm()));
-        fundo.setFitWidth(1280);
-        fundo.setFitHeight(720);
-        fundo.setPreserveRatio(false);
-        fundo.setSmooth(false);
-        fundo.setMouseTransparent(true);
-
-        return fundo;
+    private ImageView criarImagemFundo(String... caminhosImagem) {
+        /*
+         * Prioriza PNG e mantém JPG como fallback para evitar sumiço de fundo
+         * quando o projeto é aberto em outro PC/JDK.
+         */
+        return ImagemUtils.criarFundo(getClass(), caminhosImagem);
     }
 
     private void criarBossEstatico() {
