@@ -9,7 +9,7 @@ public abstract class Inimigo {
     private String descricao;
     private TipoInimigo tipoInimigo;
 
-    // Atributos de combate
+    
     private int vidaMaxima;
     private int vidaAtual;
     private int danoCorpoACorpo;
@@ -17,14 +17,14 @@ public abstract class Inimigo {
     private int defesa;
     private int pontosDeAcao;
 
-    // Drops ao ser derrotado
-    private String itemDropavel;       // item que pode cair (nome/id)
-    private String ingredienteDropavel; // ingrediente para alquimia
-    private int xpConhecimento;        // conhecimento ganho pelo jogador ao derrotar
+    
+    private String itemDropavel;       
+    private String ingredienteDropavel; 
+    private int xpConhecimento;        
 
-    // Comportamento em diálogo/combate
-    private boolean persuadivel;       // pode ser convencido a desistir pela "Arte da Conversa"
-    private int resistenciaDialogo;    // dificuldade de persuasão (0-100)
+    
+    private boolean persuadivel;       
+    private int resistenciaDialogo;    
 
     public Inimigo() {
         this.vidaMaxima = 100;
@@ -56,13 +56,13 @@ public abstract class Inimigo {
         this.resistenciaDialogo = resistenciaDialogo;
     }
 
-    // Método abstrato: cada subclasse define seu comportamento de ataque
+    
     public abstract int calcularDanoAtaque();
 
-    // Método abstrato: reação ao ser persuadido
+    
     public abstract String tentarPersuadir(int carismaJogador);
 
-    // Receber dano
+    
     public void receberDano(int dano) {
         int danoEfetivo = Math.max(0, dano - this.defesa);
         this.vidaAtual = Math.max(0, this.vidaAtual - danoEfetivo);
@@ -72,7 +72,7 @@ public abstract class Inimigo {
         return this.vidaAtual > 0;
     }
 
-    // Getters e Setters
+    
     public int getIdInimigo() { return idInimigo; }
     public void setIdInimigo(int idInimigo) { this.idInimigo = idInimigo; }
 

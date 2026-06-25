@@ -33,7 +33,7 @@ public class Jogador {
         this.criadoEm = criadoEm;
     }
 
-    // Getters e Setters
+    
     public int getIdJogador() { return idJogador; }
     public void setIdJogador(int idJogador) { this.idJogador = idJogador; }
 

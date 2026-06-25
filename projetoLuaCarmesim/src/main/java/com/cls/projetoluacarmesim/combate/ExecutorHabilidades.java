@@ -30,7 +30,7 @@ public class ExecutorHabilidades {
         resultado.adicionarMensagem(usuario.getNome() + " usa " + habilidade.getNome() + ".");
 
         switch (habilidade.getNome()) {
-            // Caminho do Vidente
+            
             case "Presságio Cortante":
                 dano(resultado, usuario, alvo, 16 + escala(usuario), true);
                 if (chance(55)) {
@@ -108,7 +108,7 @@ public class ExecutorHabilidades {
                 aplicarRiscoAlucinacao(resultado, usuario, 25);
                 break;
 
-            // Caminho do Criminoso
+            
             case "Golpe Baixo":
                 dano(resultado, usuario, alvo, 18 + escala(usuario), true);
                 if (chance(55)) {
@@ -179,7 +179,7 @@ public class ExecutorHabilidades {
                 aplicarRiscoAlucinacao(resultado, usuario, 25);
                 break;
 
-            // Caminho do Caçador
+            
             case "Disparo Preciso":
                 usuario.adicionarChanceCriticoProximo(45);
                 dano(resultado, usuario, alvo, 20 + escala(usuario), true);
@@ -250,7 +250,7 @@ public class ExecutorHabilidades {
                 aplicarRiscoAlucinacao(resultado, usuario, 22);
                 break;
 
-            // Caminho do Bardo
+            
             case "Nota Dilacerante":
                 dano(resultado, usuario, alvo, 16 + escala(usuario), false);
                 if (chance(45)) {

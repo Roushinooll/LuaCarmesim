@@ -31,7 +31,7 @@ public class IngredienteFormula {
         this.quantidade = quantidade;
     }
 
-    // Getters e Setters
+    
     public int getIdIngrediente() { return idIngrediente; }
     public void setIdIngrediente(int idIngrediente) { this.idIngrediente = idIngrediente; }
 

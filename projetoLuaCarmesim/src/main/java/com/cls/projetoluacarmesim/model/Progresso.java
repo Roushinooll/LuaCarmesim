@@ -33,7 +33,7 @@ public class Progresso {
         this.atualizadoEm = atualizadoEm;
     }
 
-    // Getters e Setters
+    
     public int getIdProgresso() { return idProgresso; }
     public void setIdProgresso(int idProgresso) { this.idProgresso = idProgresso; }
 

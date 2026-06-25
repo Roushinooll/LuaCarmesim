@@ -41,7 +41,7 @@
                text=""
                style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-family: Georgia;" />
 
-        <!-- Menu aberto com TAB durante a rua -->
+        
         <Pane fx:id="menuRua"
               layoutX="390.0"
               layoutY="115.0"

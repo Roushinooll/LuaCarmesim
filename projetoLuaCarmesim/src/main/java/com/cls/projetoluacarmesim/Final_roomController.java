@@ -147,10 +147,10 @@ public class Final_roomController {
     }
 
     private ImageView criarImagemFundo(String... caminhosImagem) {
-        /*
-         * Prioriza PNG e mantém JPG como fallback para evitar sumiço de fundo
-         * quando o projeto é aberto em outro PC/JDK.
-         */
+        
+
+
+
         return ImagemUtils.criarFundo(getClass(), caminhosImagem);
     }
 

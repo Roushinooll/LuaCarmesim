@@ -29,7 +29,7 @@ public class Ranking {
         this.dataRecorde = dataRecorde;
     }
 
-    // Getters e Setters
+    
     public int getIdRanking() { return idRanking; }
     public void setIdRanking(int idRanking) { this.idRanking = idRanking; }
 

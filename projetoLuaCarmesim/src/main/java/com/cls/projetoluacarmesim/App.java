@@ -34,9 +34,9 @@ public class App extends Application {
         stage.show();
     }
 
-    /**
-     * Troca a raiz da scene atual e retorna o controller do FXML carregado.
-     */
+    
+
+
     public static Object setRoot(String fxml) throws IOException {
         FXMLLoader loader = new FXMLLoader(
                 App.class.getResource("/com/cls/projetoluacarmesim/" + fxml + ".fxml")
@@ -48,19 +48,19 @@ public class App extends Application {
         return loader.getController();
     }
 
-    /**
-     * Mantém o jogo desenhado em 1280x720, mas escala visualmente para caber
-     * em qualquer resolução da janela, sem deformar.
-     */
+    
+
+
+
     private static void aplicarRootResponsivo(Parent root) {
         Group camadaJogo = new Group(root);
         StackPane wrapper = new StackPane(camadaJogo);
         wrapper.setStyle("-fx-background-color: black;");
         wrapper.setFocusTraversable(true);
 
-        // Quando o FXML fica dentro de um Group, ele deixa de ser a raiz direta
-        // da Scene. Por isso, copiamos o CSS para o wrapper também.
-        // Isso corrige o problema do background do menu/configurações sumir.
+        
+        
+        
         wrapper.getStylesheets().setAll(root.getStylesheets());
         if (!wrapper.getStyleClass().contains("root")) {
             wrapper.getStyleClass().add("root");

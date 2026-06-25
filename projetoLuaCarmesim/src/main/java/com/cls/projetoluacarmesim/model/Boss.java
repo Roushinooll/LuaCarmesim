@@ -2,10 +2,10 @@ package com.cls.projetoluacarmesim.model;
 
 import com.cls.projetoluacarmesim.enums.TipoInimigo;
 
-/**
- * Boss final da Lua Carmesim.
- * É um Beyonder de Sequência 5, mas muda de Caminho conforme perde vida.
- */
+
+
+
+
 public class Boss extends Beyonder {
 
     public static final int VIDA_MAXIMA_BOSS = 340;
@@ -55,15 +55,15 @@ public class Boss extends Beyonder {
         return "Caminho do " + caminhoAtual + " | Sequência 5";
     }
 
-    /**
-     * Atualiza a fase pelo HP atual.
-     * 340-256: Vidente
-     * 255-171: Caçador
-     * 170-86: Bardo
-     * 85-0: Criminoso
-     *
-     * @return true se houve troca de fase.
-     */
+    
+
+
+
+
+
+
+
+
     public boolean atualizarFasePorVida() {
         int vida = getVidaAtual();
         int novaFase;

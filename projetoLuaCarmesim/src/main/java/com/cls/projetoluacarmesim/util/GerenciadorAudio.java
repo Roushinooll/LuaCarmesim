@@ -5,13 +5,13 @@ import javafx.scene.media.MediaPlayer;
 
 import java.net.URL;
 
-/**
- * Singleton que gerencia a trilha sonora e os efeitos sonoros do jogo.
- *
- * USO:
- *   GerenciadorAudio.getInstance().tocarMusica("menu_theme");
- *   GerenciadorAudio.getInstance().setVolumeMusica(0.8);
- */
+
+
+
+
+
+
+
 public class GerenciadorAudio {
 
     private static GerenciadorAudio instancia;
@@ -27,15 +27,15 @@ public class GerenciadorAudio {
         return instancia;
     }
 
-    // -------------------------------------------------------
-    // MÚSICA DE FUNDO
-    // -------------------------------------------------------
+    
+    
+    
 
-    /**
-     * Toca um arquivo de música em loop.
-     * @param nomeArquivo nome do arquivo sem extensão,
-     *                    localizado em resources/audio/ (ex: "menu_theme")
-     */
+    
+
+
+
+
     public void tocarMusica(String nomeArquivo) {
         pararMusica();
 
@@ -68,14 +68,14 @@ public class GerenciadorAudio {
         if (musicaPlayer != null) musicaPlayer.play();
     }
 
-    // -------------------------------------------------------
-    // EFEITOS SONOROS (SFX)
-    // -------------------------------------------------------
+    
+    
+    
 
-    /**
-     * Toca um efeito sonoro uma única vez.
-     * @param nomeArquivo nome sem extensão, em resources/audio/sfx/
-     */
+    
+
+
+
     public void tocarSfx(String nomeArquivo) {
         URL url = getClass().getResource("/audio/sfx/" + nomeArquivo + ".mp3");
         if (url == null) {
@@ -86,21 +86,21 @@ public class GerenciadorAudio {
         MediaPlayer sfxPlayer = new MediaPlayer(new Media(url.toExternalForm()));
         sfxPlayer.setVolume(volumeSom / 100.0);
         sfxPlayer.play();
-        // Libera recursos ao terminar
+        
         sfxPlayer.setOnEndOfMedia(sfxPlayer::dispose);
     }
 
-    // -------------------------------------------------------
-    // VOLUME
-    // -------------------------------------------------------
+    
+    
+    
 
-    /** 0–100 */
+    
     public void setVolumeMusica(double volume) {
         this.volumeMusica = volume;
         if (musicaPlayer != null) musicaPlayer.setVolume(volume / 100.0);
     }
 
-    /** 0–100 */
+    
     public void setVolumeSom(double volume) {
         this.volumeSom = volume;
     }

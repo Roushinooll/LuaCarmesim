@@ -3,24 +3,24 @@ package com.cls.projetoluacarmesim.util;
 import java.io.*;
 import java.util.Properties;
 
-/**
- * Persiste as configurações do jogo em:
- *   <pasta_do_usuário>/.luacarmesim/configs.properties
- *
- * Assim as preferências sobrevivem entre sessões sem depender do banco.
- */
+
+
+
+
+
+
 public class GerenciadorConfigs {
 
     private static final String PASTA   = System.getProperty("user.home") + "/.luacarmesim";
     private static final String ARQUIVO = PASTA + "/configs.properties";
 
-    // Chaves
+    
     public static final String KEY_MUSICA      = "volume.musica";
     public static final String KEY_SOM         = "volume.som";
     public static final String KEY_TELA_CHEIA  = "tela.cheia";
     public static final String KEY_RESOLUCAO   = "resolucao";
 
-    // Padrões
+    
     private static final String DEFAULT_MUSICA     = "50";
     private static final String DEFAULT_SOM        = "70";
     private static final String DEFAULT_TELA_CHEIA = "false";
@@ -38,9 +38,9 @@ public class GerenciadorConfigs {
         return instancia;
     }
 
-    // -------------------------------------------------------
-    // GETTERS
-    // -------------------------------------------------------
+    
+    
+    
 
     public double getMusica() {
         return Double.parseDouble(props.getProperty(KEY_MUSICA, DEFAULT_MUSICA));
@@ -58,9 +58,9 @@ public class GerenciadorConfigs {
         return props.getProperty(KEY_RESOLUCAO, DEFAULT_RESOLUCAO);
     }
 
-    // -------------------------------------------------------
-    // SETTERS
-    // -------------------------------------------------------
+    
+    
+    
 
     public void setMusica(double valor) {
         props.setProperty(KEY_MUSICA, String.valueOf((int) valor));
@@ -78,9 +78,9 @@ public class GerenciadorConfigs {
         props.setProperty(KEY_RESOLUCAO, valor);
     }
 
-    // -------------------------------------------------------
-    // RESETAR
-    // -------------------------------------------------------
+    
+    
+    
 
     public void resetar() {
         props.setProperty(KEY_MUSICA,     DEFAULT_MUSICA);
@@ -89,9 +89,9 @@ public class GerenciadorConfigs {
         props.setProperty(KEY_RESOLUCAO,  DEFAULT_RESOLUCAO);
     }
 
-    // -------------------------------------------------------
-    // PERSISTÊNCIA
-    // -------------------------------------------------------
+    
+    
+    
 
     public void salvar() {
         try {
@@ -113,7 +113,7 @@ public class GerenciadorConfigs {
                 System.err.println("Erro ao carregar configurações: " + e.getMessage());
             }
         } else {
-            // Primeira execução — aplica padrões
+            
             resetar();
         }
     }

@@ -34,7 +34,7 @@ public class ItemEspecial {
         this.permanente = permanente;
     }
 
-    // Getters e Setters
+    
     public int getIdItem() { return idItem; }
     public void setIdItem(int idItem) { this.idItem = idItem; }
 

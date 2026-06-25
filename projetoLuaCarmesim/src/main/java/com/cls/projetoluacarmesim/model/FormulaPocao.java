@@ -11,7 +11,7 @@ public class FormulaPocao {
     private String efeitoPrincipal;
     private String descricao;
 
-    // Lista de ingredientes carregada pelo ReceitaDAO quando necessário
+    
     private List<IngredienteFormula> ingredientes = new ArrayList<>();
 
     public FormulaPocao() {}
@@ -33,7 +33,7 @@ public class FormulaPocao {
         this.descricao = descricao;
     }
 
-    // Getters e Setters
+    
     public int getIdFormula() { return idFormula; }
     public void setIdFormula(int idFormula) { this.idFormula = idFormula; }
 

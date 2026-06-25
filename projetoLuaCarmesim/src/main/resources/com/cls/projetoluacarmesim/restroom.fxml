@@ -14,7 +14,7 @@
 
    <children>
 
-      <!-- Background artístico do quarto. O controller alterna entre restroom_gun e restroom_without. -->
+      
       <ImageView fx:id="fundoRestroom"
                  layoutX="0.0"
                  layoutY="0.0"
@@ -24,7 +24,7 @@
                  smooth="false"
                  mouseTransparent="true" />
 
-      <!-- Hitboxes invisíveis dos objetos interativos do cenário novo. -->
+      
       <Rectangle fx:id="mesa"
                  layoutX="605.0"
                  layoutY="448.0"
@@ -49,12 +49,12 @@
                  opacity="0.0"
                  style="-fx-fill: white;" />
 
-      <!-- Personagem -->
+      
       <ImageView fx:id="personagemView"
                  layoutX="235.0"
                  layoutY="405.0" />
 
-      <!-- Texto de interação -->
+      
       <Label fx:id="textoInteracao"
              layoutX="310.0"
              layoutY="640.0"
@@ -63,7 +63,7 @@
              wrapText="true"
              style="-fx-text-fill: white; -fx-font-size: 24px;" />
 
-      <!-- Caixa de diálogo estilo jogo -->
+      
       <Pane fx:id="caixaDialogo"
             layoutX="290.0"
             layoutY="470.0"
@@ -104,7 +104,7 @@
          </children>
       </Pane>
 
-      <!-- Painel interno do caldeirão, sem popup externo bugando foco -->
+      
       <Pane fx:id="painelCaldeirao"
             layoutX="240.0"
             layoutY="105.0"

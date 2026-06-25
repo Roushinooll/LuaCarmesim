@@ -31,7 +31,7 @@ public class BuffPermanente {
         this.descricao = descricao;
     }
 
-    // Getters e Setters
+    
     public int getIdBuff() { return idBuff; }
     public void setIdBuff(int idBuff) { this.idBuff = idBuff; }
 

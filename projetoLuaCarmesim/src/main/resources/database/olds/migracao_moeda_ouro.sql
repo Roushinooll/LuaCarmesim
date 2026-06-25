@@ -1,7 +1,7 @@
--- ============================================================
--- MIGRAÇÃO — moeda de ouro no inventário/sistema de economia
--- Rode isto se o banco já existe e você não quer recriar tudo.
--- ============================================================
+
+
+
+
 
 DO $$
 BEGIN

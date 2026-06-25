@@ -11,9 +11,9 @@ import java.util.List;
 
 public class ReceitaDAO {
 
-    // -------------------------------------------------------
-    // FÓRMULAS
-    // -------------------------------------------------------
+    
+    
+    
 
     public FormulaPocao buscarPorId(int idFormula) throws SQLException {
         String sql = "SELECT * FROM formula_pocao WHERE id_formula = ?";
@@ -334,9 +334,9 @@ public class ReceitaDAO {
         }
     }
 
-    // -------------------------------------------------------
-    // INGREDIENTES
-    // -------------------------------------------------------
+    
+    
+    
 
     public List<IngredienteFormula> listarIngredientes(int idFormula) throws SQLException {
         String sql = "SELECT * FROM ingrediente_formula WHERE id_formula = ?";
@@ -359,9 +359,9 @@ public class ReceitaDAO {
         }
     }
 
-    // -------------------------------------------------------
-    // JOGADOR x FÓRMULA (fórmulas aprendidas)
-    // -------------------------------------------------------
+    
+    
+    
 
     public void marcarComoAprendida(int idJogador, int idFormula) throws SQLException {
         String sql = "INSERT INTO jogador_formula (id_jogador, id_formula) VALUES (?, ?) "
@@ -446,9 +446,9 @@ public class ReceitaDAO {
         }
     }
 
-    // -------------------------------------------------------
-    // MAPEAMENTO
-    // -------------------------------------------------------
+    
+    
+    
 
     private FormulaPocao mapearFormula(ResultSet rs) throws SQLException {
         return new FormulaPocao(

@@ -29,9 +29,9 @@ public class ConfigsController implements Initializable {
     private final GerenciadorConfigs configs = GerenciadorConfigs.getInstance();
     private final GerenciadorAudio   audio   = GerenciadorAudio.getInstance();
 
-    // -------------------------------------------------------
-    // INICIALIZAÇÃO — carrega os valores salvos na UI
-    // -------------------------------------------------------
+    
+    
+    
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -42,7 +42,7 @@ public class ConfigsController implements Initializable {
             "1920 x 1080"
         );
 
-        // Preenche campos com os valores persistidos
+        
         sliderMusica.setValue(configs.getMusica());
         sliderSom.setValue(configs.getSom());
         checkTelaCheia.setSelected(configs.isTelaCheia());
@@ -67,7 +67,7 @@ public class ConfigsController implements Initializable {
             });
         }
 
-        // Atualiza o volume em tempo real enquanto o usuário arrasta
+        
         sliderMusica.valueProperty().addListener((obs, antigo, novo) ->
             audio.setVolumeMusica(novo.doubleValue())
         );
@@ -77,9 +77,9 @@ public class ConfigsController implements Initializable {
         );
     }
 
-    // -------------------------------------------------------
-    // SALVAR — persiste e aplica imediatamente
-    // -------------------------------------------------------
+    
+    
+    
 
     @FXML
     private void salvar() {
@@ -88,15 +88,15 @@ public class ConfigsController implements Initializable {
         configs.setTelaCheia(checkTelaCheia.isSelected());
         configs.setResolucao(comboResolucao.getValue());
 
-        // Aplica volume
+        
         audio.setVolumeMusica(sliderMusica.getValue());
         audio.setVolumeSom(sliderSom.getValue());
 
-        // Aplica tela cheia
+        
         Stage stage = App.getStage();
         stage.setFullScreen(checkTelaCheia.isSelected());
 
-        // Aplica resolução (só quando não está em tela cheia)
+        
         if (!checkTelaCheia.isSelected()) {
             aplicarResolucao(comboResolucao.getValue(), stage);
         }
@@ -104,9 +104,9 @@ public class ConfigsController implements Initializable {
         configs.salvar();
     }
 
-    // -------------------------------------------------------
-    // RESETAR — volta aos padrões sem salvar no disco ainda
-    // -------------------------------------------------------
+    
+    
+    
 
     @FXML
     private void resetar() {
@@ -117,16 +117,16 @@ public class ConfigsController implements Initializable {
         checkTelaCheia.setSelected(configs.isTelaCheia());
         comboResolucao.setValue(configs.getResolucao());
 
-        // Aplica os padrões em tempo real
+        
         audio.setVolumeMusica(configs.getMusica());
         audio.setVolumeSom(configs.getSom());
         App.getStage().setFullScreen(false);
         aplicarResolucao(configs.getResolucao(), App.getStage());
     }
 
-    // -------------------------------------------------------
-    // VOLTAR
-    // -------------------------------------------------------
+    
+    
+    
 
     @FXML
     private void voltarParaMenu() throws IOException {
@@ -151,9 +151,9 @@ public class ConfigsController implements Initializable {
         }
     }
 
-    // -------------------------------------------------------
-    // AUXILIAR — interpreta "1280 x 720" e redimensiona a janela
-    // -------------------------------------------------------
+    
+    
+    
 
     private void aplicarResolucao(String resolucao, Stage stage) {
         try {

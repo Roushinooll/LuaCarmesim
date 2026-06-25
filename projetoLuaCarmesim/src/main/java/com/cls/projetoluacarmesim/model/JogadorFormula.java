@@ -8,7 +8,7 @@ public class JogadorFormula {
     private int idFormula;
     private LocalDateTime aprendidaEm;
 
-    // Objeto completo da fórmula, carregado opcionalmente pelo DAO
+    
     private FormulaPocao formula;
 
     public JogadorFormula() {}
@@ -24,7 +24,7 @@ public class JogadorFormula {
         this.aprendidaEm = aprendidaEm;
     }
 
-    // Getters e Setters
+    
     public int getIdJogador() { return idJogador; }
     public void setIdJogador(int idJogador) { this.idJogador = idJogador; }
 

@@ -1,48 +1,48 @@
--- ============================================================
---  LUA CARMESIM — BANCO UNIFICADO POSTGRESQL
---  Arquivo gerado a partir dos scripts enviados.
---
---  COMO USAR:
---  1) Crie o banco no PostgreSQL/pgAdmin, se ainda não existir.
---  2) Conecte-se ao banco desejado.
---  3) Execute este arquivo inteiro uma única vez.
---
---  Ordem incorporada neste arquivo:
---  1. lua_carmesim_postgres.sql                 -> estrutura base + dados iniciais
---  2. migracao_caldeirao_pocoes.sql             -> garante tipo 'ingrediente'
---  3. migracao_moeda_ouro.sql                   -> garante tipo 'moeda'
---  4. migracao_progressao_pocoes.sql            -> garante coluna caminho_atual
---  5. receitas_pocoes_completo.sql              -> receitas completas das poções
---
---  Observação: algumas migrações já estavam incorporadas no arquivo principal.
---  Elas foram mantidas aqui de forma segura usando IF NOT EXISTS.
--- ============================================================
 
 
 
--- ============================================================
---  1) ESTRUTURA BASE DO BANCO
--- ============================================================
 
--- ============================================================
---  LUA CARMESIM — Script de criação do banco de dados
---  Projeto TLP2 | Heitor Tonani & Daniel Muniz
---  Adaptado para PostgreSQL (pgAdmin)
--- ============================================================
 
--- Execute conectado ao banco desejado no pgAdmin.
--- Caso queira criar o banco antes, rode manualmente:
--- CREATE DATABASE lua_carmesim
---     ENCODING 'UTF8'
---     LC_COLLATE 'pt_BR.UTF-8'
---     LC_CTYPE   'pt_BR.UTF-8';
--- Em seguida conecte nele e execute o restante deste script.
 
--- ============================================================
---  TIPOS ENUM
---  No PostgreSQL, ENUMs são tipos nomeados criados antes das
---  tabelas que os utilizam.
--- ============================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 CREATE TYPE status_run_enum AS ENUM (
     'em_andamento',
@@ -77,10 +77,10 @@ CREATE TYPE tipo_ingrediente_enum AS ENUM (
     'item_npc'
 );
 
--- ============================================================
---  FUNÇÃO AUXILIAR para atualização automática de timestamp
---  Substitui o ON UPDATE CURRENT_TIMESTAMP do MySQL.
--- ============================================================
+
+
+
+
 
 CREATE OR REPLACE FUNCTION atualizar_timestamp()
 RETURNS TRIGGER AS $$
@@ -90,9 +90,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- ------------------------------------------------------------
--- JOGADOR
--- ------------------------------------------------------------
+
+
+
 CREATE TABLE IF NOT EXISTS jogador (
     id_jogador      SERIAL          PRIMARY KEY,
     nome            VARCHAR(100)    NOT NULL,
@@ -106,9 +106,9 @@ CREATE TABLE IF NOT EXISTS jogador (
     CONSTRAINT chk_sequencia CHECK (sequencia_atual BETWEEN 0 AND 10)
 );
 
--- ------------------------------------------------------------
--- PROGRESSO
--- ------------------------------------------------------------
+
+
+
 CREATE TABLE IF NOT EXISTS progresso (
     id_progresso    SERIAL              PRIMARY KEY,
     id_jogador      INT                 NOT NULL,
@@ -122,15 +122,15 @@ CREATE TABLE IF NOT EXISTS progresso (
         ON DELETE CASCADE
 );
 
--- Trigger que substitui o ON UPDATE CURRENT_TIMESTAMP do MySQL
+
 CREATE OR REPLACE TRIGGER trg_progresso_atualizado_em
     BEFORE UPDATE ON progresso
     FOR EACH ROW
     EXECUTE FUNCTION atualizar_timestamp();
 
--- ------------------------------------------------------------
--- RANKING
--- ------------------------------------------------------------
+
+
+
 CREATE TABLE IF NOT EXISTS ranking (
     id_ranking          SERIAL      PRIMARY KEY,
     id_jogador          INT         NOT NULL,
@@ -143,9 +143,9 @@ CREATE TABLE IF NOT EXISTS ranking (
         ON DELETE CASCADE
 );
 
--- ------------------------------------------------------------
--- BUFF_PERMANENTE
--- ------------------------------------------------------------
+
+
+
 CREATE TABLE IF NOT EXISTS buff_permanente (
     id_buff     SERIAL          PRIMARY KEY,
     id_jogador  INT             NOT NULL,
@@ -159,9 +159,9 @@ CREATE TABLE IF NOT EXISTS buff_permanente (
         ON DELETE CASCADE
 );
 
--- ------------------------------------------------------------
--- ITEM_ESPECIAL
--- ------------------------------------------------------------
+
+
+
 CREATE TABLE IF NOT EXISTS item_especial (
     id_item     SERIAL          PRIMARY KEY,
     id_jogador  INT             NOT NULL,
@@ -175,9 +175,9 @@ CREATE TABLE IF NOT EXISTS item_especial (
         ON DELETE CASCADE
 );
 
--- ------------------------------------------------------------
--- FORMULA_POCAO
--- ------------------------------------------------------------
+
+
+
 CREATE TABLE IF NOT EXISTS formula_pocao (
     id_formula          SERIAL          PRIMARY KEY,
     nome_pocao          VARCHAR(150)    NOT NULL,
@@ -188,9 +188,9 @@ CREATE TABLE IF NOT EXISTS formula_pocao (
     CONSTRAINT chk_nivel_formula CHECK (nivel_sequencia BETWEEN 0 AND 9)
 );
 
--- ------------------------------------------------------------
--- INGREDIENTE_FORMULA
--- ------------------------------------------------------------
+
+
+
 CREATE TABLE IF NOT EXISTS ingrediente_formula (
     id_ingrediente      SERIAL                  PRIMARY KEY,
     id_formula          INT                     NOT NULL,
@@ -203,9 +203,9 @@ CREATE TABLE IF NOT EXISTS ingrediente_formula (
         ON DELETE CASCADE
 );
 
--- ------------------------------------------------------------
--- JOGADOR_FORMULA (tabela associativa)
--- ------------------------------------------------------------
+
+
+
 CREATE TABLE IF NOT EXISTS jogador_formula (
     id_jogador      INT         NOT NULL,
     id_formula      INT         NOT NULL,
@@ -221,9 +221,9 @@ CREATE TABLE IF NOT EXISTS jogador_formula (
         ON DELETE CASCADE
 );
 
--- ============================================================
---  DADOS DE EXEMPLO
--- ============================================================
+
+
+
 
 INSERT INTO jogador (nome, sequencia_atual, sanidade_maxima, sanidade_atual)
 VALUES ('Protagonista', 10, 100, 85);
@@ -256,19 +256,19 @@ VALUES
 INSERT INTO jogador_formula (id_jogador, id_formula)
 VALUES (1, 1);
 
--- ============================================================
---  FIM DO SCRIPT
--- ============================================================
 
 
--- ============================================================
---  2) MIGRAÇÃO — CALDEIRÃO E CRAFT DE POÇÕES
--- ============================================================
 
--- ============================================================
--- MIGRAÇÃO — sistema de caldeirão e craft de poções
--- Rode isto se o banco já existe e você não quer recriar tudo.
--- ============================================================
+
+
+
+
+
+
+
+
+
+
 
 DO $$
 BEGIN
@@ -278,14 +278,14 @@ EXCEPTION
 END $$;
 
 
--- ============================================================
---  3) MIGRAÇÃO — MOEDA DE OURO
--- ============================================================
 
--- ============================================================
--- MIGRAÇÃO — moeda de ouro no inventário/sistema de economia
--- Rode isto se o banco já existe e você não quer recriar tudo.
--- ============================================================
+
+
+
+
+
+
+
 
 DO $$
 BEGIN
@@ -295,34 +295,34 @@ EXCEPTION
 END $$;
 
 
--- ============================================================
---  4) MIGRAÇÃO — PROGRESSÃO DE POÇÕES
--- ============================================================
 
--- ============================================================
--- MIGRAÇÃO: PROGRESSÃO DE POÇÕES DO JOGADOR
--- Rode este SQL uma vez no banco que já existe.
--- ============================================================
+
+
+
+
+
+
+
 
 ALTER TABLE jogador
 ADD COLUMN IF NOT EXISTS caminho_atual VARCHAR(50);
 
--- Opcional para testes: resetar um jogador específico.
--- Troque o nome antes de rodar.
--- UPDATE jogador
--- SET sequencia_atual = 10,
---     caminho_atual = NULL
--- WHERE nome = 'SEU_NOME_AQUI';
 
 
--- ============================================================
---  5) RECEITAS COMPLETAS DAS POÇÕES
--- ============================================================
 
--- ============================================================
--- RECEITAS COMPLETAS DAS POÇÕES DE SEQUÊNCIA
--- Baseadas no documento de design do Lua Carmesim
--- ============================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 DO $$
 BEGIN
@@ -489,8 +489,8 @@ ON CONFLICT (id_formula, nome_ingrediente) DO UPDATE SET
     quantidade = EXCLUDED.quantidade;
 
 
--- ============================================================
---  FIM DO BANCO UNIFICADO
--- ============================================================
 
--- Execute apenas este arquivo se quiser instalar tudo de uma vez.
+
+
+
+

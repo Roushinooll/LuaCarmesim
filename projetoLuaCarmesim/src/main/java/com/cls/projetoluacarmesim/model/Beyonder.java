@@ -4,22 +4,22 @@ import com.cls.projetoluacarmesim.enums.TipoInimigo;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Beyonder — inimigo que tomou uma Poção de Sequência, assim como o jogador.
- * Além de armas e corpo a corpo, possui poderes místicos e sobrenaturais.
- * Mais resistente à persuasão e mais perigoso em combate.
- */
+
+
+
+
+
 public class Beyonder extends Inimigo {
 
-    private int sequencia;           // nível de poder (0 = mais alto, 10 = iniciante)
+    private int sequencia;           
     private int sanidadeMaxima;
-    private int sanidadeAtual;       // beyonders também sofrem de insanidade
-    private List<String> poderesMisticos;   // lista de nomes de poderes disponíveis
-    private List<String> poderesSOBRENATURAIS; // poderes mais raros/custosos
-    private int custoSanidadePorPoder;      // sanidade gasta ao usar um poder
+    private int sanidadeAtual;       
+    private List<String> poderesMisticos;   
+    private List<String> poderesSOBRENATURAIS; 
+    private int custoSanidadePorPoder;      
 
-    private boolean formulaConhecida; // se o jogador pode extrair a receita da poção dele
-    private String nomePocao;         // nome da poção/sequência que ele representa
+    private boolean formulaConhecida; 
+    private String nomePocao;         
 
     public Beyonder() {
         super();
@@ -32,7 +32,7 @@ public class Beyonder extends Inimigo {
         this.custoSanidadePorPoder = 10;
         this.formulaConhecida = false;
         setPersuadivel(false);
-        setResistenciaDialogo(80); // beyonders são muito mais difíceis de convencer
+        setResistenciaDialogo(80); 
     }
 
     public Beyonder(int idInimigo, String nome, String descricao,
@@ -55,17 +55,17 @@ public class Beyonder extends Inimigo {
         this.poderesSOBRENATURAIS = new ArrayList<>();
     }
 
-    /**
-     * Dano do Beyonder combina ataque físico com poder místico.
-     * Se sua sanidade estiver baixa, os poderes ficam instáveis e podem errar.
-     */
+    
+
+
+
     @Override
     public int calcularDanoAtaque() {
         int danoFisico = getDanoCorpoACorpo() + getDanoArma();
 
-        // Poderes só são usados com sanidade suficiente
+        
         if (!poderesMisticos.isEmpty() && sanidadeAtual >= custoSanidadePorPoder) {
-            int bonusMistico = (10 - sequencia) * 5; // sequências menores = mais poder
+            int bonusMistico = (10 - sequencia) * 5; 
             gastarSanidade(custoSanidadePorPoder);
             return danoFisico + bonusMistico;
         }
@@ -73,11 +73,11 @@ public class Beyonder extends Inimigo {
         return danoFisico;
     }
 
-    /**
-     * Beyonders raramente cedem ao diálogo.
-     * Porém, em casos de sequências muito diferentes, podem revelar informações
-     * ou até mesmo propor acordos antes de lutar.
-     */
+    
+
+
+
+
     @Override
     public String tentarPersuadir(int carismaJogador) {
         if (!isPersuadivel()) {
@@ -91,12 +91,12 @@ public class Beyonder extends Inimigo {
         }
     }
 
-    // Gastar sanidade ao usar poderes
+    
     public void gastarSanidade(int custo) {
         this.sanidadeAtual = Math.max(0, this.sanidadeAtual - custo);
     }
 
-    // Adicionar poderes
+    
     public void adicionarPoderMistico(String poder) {
         this.poderesMisticos.add(poder);
     }
@@ -109,7 +109,7 @@ public class Beyonder extends Inimigo {
         return getNome() != null ? getNome() : "O Beyonder";
     }
 
-    // Getters e Setters específicos de Beyonder
+    
     public int getSequencia() { return sequencia; }
     public void setSequencia(int sequencia) {
         if (sequencia < 0 || sequencia > 10)

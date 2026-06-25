@@ -588,10 +588,10 @@ public class StreetsController {
             return;
         }
 
-        /*
-         * Fallback: caso alguma imagem seja removida da pasta resources/image/fundos,
-         * o jogo ainda consegue abrir usando o cenário antigo desenhado por formas.
-         */
+        
+
+
+
         Rectangle fundoFallback = new Rectangle(0, 0, 1280, 720);
         fundoFallback.setFill(Color.rgb(12, 10, 14));
         camadaCenario.getChildren().add(fundoFallback);
@@ -619,10 +619,10 @@ public class StreetsController {
             return null;
         }
 
-        /*
-         * Usa PNG primeiro e deixa o JPG como fallback. Isso evita o bug do
-         * fundo sumir em alguns PCs quando o JavaFX/JDK não renderiza o JPG.
-         */
+        
+
+
+
         String fallbackJpg = caminhoImagem.endsWith(".png")
                 ? caminhoImagem.substring(0, caminhoImagem.length() - 4) + ".jpg"
                 : caminhoImagem.substring(0, caminhoImagem.lastIndexOf('.')) + ".jpg";
@@ -750,10 +750,10 @@ public class StreetsController {
     }
 
     private void gerarMercadorSeguro() {
-        /*
-         * A imagem safe_room.png já possui o mercador e a bancada desenhados.
-         * Aqui mantemos apenas uma hitbox invisível para preservar a interação com F.
-         */
+        
+
+
+
         mercadorView = new Rectangle(72, 92);
         mercadorView.setLayoutX(604);
         mercadorView.setLayoutY(300);
@@ -1128,15 +1128,15 @@ public class StreetsController {
 
     private FormulaPocao sortearReceitaDisponivel(ReceitaDAO receitaDAO, int idJogador) throws SQLException {
 
-        /*
-         * Agora qualquer sequência pode aparecer em qualquer rua.
-         * A raridade fica no peso do sorteio: sequência 9 é mais comum,
-         * enquanto sequência 5 é a mais rara.
-         *
-         * Mesmo assim, o ReceitaDAO continua bloqueando receitas que pulam
-         * sequência. Exemplo: Palhaço só pode aparecer se o jogador já tiver
-         * aprendido Vidente.
-         */
+        
+
+
+
+
+
+
+
+
         for (int tentativa = 0; tentativa < 10; tentativa++) {
             int nivelSequencia = sortearNivelReceitaPorRaridade();
 
@@ -1150,12 +1150,12 @@ public class StreetsController {
             }
         }
 
-        /*
-         * Fallback:
-         * Se o sorteio cair várias vezes em níveis bloqueados ou já aprendidos,
-         * tenta encontrar qualquer receita disponível, da sequência mais comum
-         * para a mais rara.
-         */
+        
+
+
+
+
+
         int[] niveis = {9, 8, 7, 6, 5};
 
         for (int nivel : niveis) {

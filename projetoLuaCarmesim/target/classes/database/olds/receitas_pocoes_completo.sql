@@ -1,8 +1,8 @@
 
--- ============================================================
--- RECEITAS COMPLETAS DAS POÇÕES DE SEQUÊNCIA
--- Baseadas no documento de design do Lua Carmesim
--- ============================================================
+
+
+
+
 
 DO $$
 BEGIN

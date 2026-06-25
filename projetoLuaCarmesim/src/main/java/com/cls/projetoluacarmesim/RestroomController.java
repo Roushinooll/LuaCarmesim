@@ -207,11 +207,11 @@ public class RestroomController {
 
         String nomeArquivo = possuiArma ? "restroom_without" : "restroom_gun";
 
-        /*
-         * Corrigido para priorizar PNG. Em alguns PCs/JDKs o JavaFX falha ao
-         * renderizar determinados JPGs, principalmente depois de mover o projeto.
-         * Mantive o JPG como fallback para compatibilidade com versões antigas.
-         */
+        
+
+
+
+
         javafx.scene.image.Image imagem = ImagemUtils.carregarImagem(
                 getClass(),
                 "/image/fundos/" + nomeArquivo + ".png",

@@ -24,7 +24,7 @@ public class ProgressoNarrativo {
         this.descobertoEm = descobertoEm;
     }
 
-    // Getters e Setters
+    
     public int getIdProgressoNarrativo() { return idProgressoNarrativo; }
     public void setIdProgressoNarrativo(int idProgressoNarrativo) { this.idProgressoNarrativo = idProgressoNarrativo; }
 

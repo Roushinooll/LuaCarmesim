@@ -252,11 +252,11 @@ public class EstadoJogo {
         this.idsReceitasRua.clear();
     }
 
-    /**
-     * Reinicia a run quando o jogador morre.
-     * Mantém o jogador/receitas/conhecimento, mas remove os recursos físicos
-     * e apaga a progressão de poção da run atual.
-     */
+    
+
+
+
+
     public void resetarAposMorte() {
         if (inventario != null) {
             inventario.limparItensDaRun();

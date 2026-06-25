@@ -2,11 +2,11 @@ package com.cls.projetoluacarmesim.model;
 
 import com.cls.projetoluacarmesim.enums.TipoInimigo;
 
-/**
- * Bandido — inimigo próximo de humano.
- * Combate restrito a armas e corpo a corpo, sem poderes místicos.
- * Mais fácil de persuadir que um Beyonder.
- */
+
+
+
+
+
 public class Bandido extends Inimigo {
 
     public enum TipoArma {
@@ -18,8 +18,8 @@ public class Bandido extends Inimigo {
     }
 
     private TipoArma tipoArma;
-    private boolean estaAmedrontado; // status causado pelo blefe do jogador
-    private int moedaRoubada;        // ouro/moeda que carrega (drop extra)
+    private boolean estaAmedrontado; 
+    private int moedaRoubada;        
 
     public Bandido() {
         super();
@@ -28,7 +28,7 @@ public class Bandido extends Inimigo {
         this.estaAmedrontado = false;
         this.moedaRoubada = 0;
         setPersuadivel(true);
-        setResistenciaDialogo(40); // bandidos cedem mais facilmente
+        setResistenciaDialogo(40); 
     }
 
     public Bandido(int idInimigo, String nome, String descricao,
@@ -45,10 +45,10 @@ public class Bandido extends Inimigo {
         this.estaAmedrontado = false;
     }
 
-    /**
-     * Dano do bandido depende do tipo de arma equipada.
-     * Se amedrontado, ataca com metade da força.
-     */
+    
+
+
+
     @Override
     public int calcularDanoAtaque() {
         int danoBase = (tipoArma == TipoArma.DESARMADO)
@@ -58,10 +58,10 @@ public class Bandido extends Inimigo {
         return estaAmedrontado ? danoBase / 2 : danoBase;
     }
 
-    /**
-     * Bandidos podem ser persuadidos a fugir ou a dar informações.
-     * Resultado depende do carisma do jogador vs. resistência do bandido.
-     */
+    
+
+
+
     @Override
     public String tentarPersuadir(int carismaJogador) {
         if (!isPersuadivel()) {
@@ -82,7 +82,7 @@ public class Bandido extends Inimigo {
         return getNome() != null ? getNome() : "O bandido";
     }
 
-    // Getters e Setters específicos de Bandido
+    
     public TipoArma getTipoArma() { return tipoArma; }
     public void setTipoArma(TipoArma tipoArma) { this.tipoArma = tipoArma; }
 
